@@ -71,9 +71,7 @@ export const useCoinbaseWebSocket = (
     const bestAskPrice = Math.min(...[...asks.keys()].map(Number));
 
     if (isFinite(bestBidPrice) && isFinite(bestAskPrice)) {
-      const midPrice = (bestBidPrice + bestAskPrice) / 2;
-      // console.log(`Coinbase L2 - Best Bid: ${bestBidPrice}, Best Ask: ${bestAskPrice}, Mid: ${midPrice}`);
-      return midPrice;
+      return (bestBidPrice + bestAskPrice) / 2;
     }
 
     return null;
@@ -103,7 +101,6 @@ export const useCoinbaseWebSocket = (
       wsRef.current = new WebSocket("wss://advanced-trade-ws.coinbase.com");
 
       wsRef.current.addEventListener("open", () => {
-        console.log("Coinbase Advanced Trade WebSocket connected");
         isConnectingRef.current = false;
 
         // Subscribe to BTC-USD level2 (orderbook) using Advanced Trade API format
@@ -113,10 +110,6 @@ export const useCoinbaseWebSocket = (
           channel: "level2",
         };
 
-        console.log(
-          "Coinbase Advanced Trade: Sending subscription message:",
-          subscribeMessage,
-        );
         wsRef.current?.send(JSON.stringify(subscribeMessage));
         isConnectedRef.current = true;
         onStatusChange("connected");
@@ -130,12 +123,10 @@ export const useCoinbaseWebSocket = (
       wsRef.current.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          // console.log('Coinbase: Received message type:', data.channel, 'events:', data.events?.length);
 
           // Handle Advanced Trade level2 orderbook messages
           if (data.channel === "l2_data" && data.events) {
             for (const event of data.events) {
-              // console.log('Coinbase: Processing event type:', event.type, 'for product:', event.product_id);
               if (event.product_id === "BTC-USD") {
                 // Handle snapshot (initial orderbook state)
                 if (event.type === "snapshot") {
@@ -170,7 +161,6 @@ export const useCoinbaseWebSocket = (
                     }
                   }
 
-                  //console.log('Coinbase: Loaded orderbook snapshot');
 
                   // Calculate and emit price after snapshot
                   const midPrice = calculateMidPrice();
@@ -218,14 +208,7 @@ export const useCoinbaseWebSocket = (
 
                     // Calculate and emit price after updates
                     const midPrice = calculateMidPrice();
-                    if (midPrice === null) {
-                      console.log(
-                        "Coinbase: midPrice is null - bids:",
-                        orderbookRef.current.bids.size,
-                        "asks:",
-                        orderbookRef.current.asks.size,
-                      );
-                    } else {
+                    if (midPrice !== null) {
                       onPriceUpdate({
                         price: midPrice,
                         timestamp: Date.now(),
@@ -237,21 +220,12 @@ export const useCoinbaseWebSocket = (
               }
             }
           }
-          // Handle subscription confirmations
-          else if (data.type === "subscriptions") {
-            console.log("Coinbase: Subscription confirmed:", data);
-          }
-          // Handle errors
-          else if (data.type === "error") {
-            console.error("Coinbase: Subscription error:", data);
-          }
-        } catch (error) {
-          console.error("Error parsing Coinbase message:", error);
+        } catch (_error) {
+          // Ignore malformed WebSocket payloads
         }
       };
 
       wsRef.current.addEventListener("close", () => {
-        console.log("Coinbase Advanced Trade WebSocket disconnected");
         isConnectingRef.current = false;
         isConnectedRef.current = false;
         onStatusChange("disconnected");
@@ -262,18 +236,12 @@ export const useCoinbaseWebSocket = (
         // }, 5000);
       });
 
-      wsRef.current.onerror = (error) => {
-        console.error("Coinbase Advanced Trade WebSocket error:", error);
-        console.error(
-          "Coinbase Advanced Trade WebSocket readyState:",
-          wsRef.current?.readyState,
-        );
+      wsRef.current.onerror = (_error) => {
         isConnectingRef.current = false;
         isConnectedRef.current = false;
         onStatusChange("disconnected");
       };
-    } catch (error) {
-      console.error("Error creating Coinbase Advanced Trade WebSocket:", error);
+    } catch (_error) {
       isConnectingRef.current = false;
       isConnectedRef.current = false;
       onStatusChange("disconnected");

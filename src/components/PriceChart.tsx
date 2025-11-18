@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo, memo, useState } from "react";
@@ -33,12 +32,6 @@ const PriceChart: React.FC<PriceChartProps> = memo(({ data }) => {
 
   // Handle legend click to toggle line visibility
   const handleLegendClick = (dataKey: string) => {
-    console.log(
-      `Toggling ${dataKey}:`,
-      visibleLines[dataKey as keyof typeof visibleLines],
-      "→",
-      !visibleLines[dataKey as keyof typeof visibleLines],
-    );
     setVisibleLines((prev) => ({
       ...prev,
       [dataKey]: !prev[dataKey as keyof typeof prev],
@@ -238,7 +231,6 @@ const PriceChart: React.FC<PriceChartProps> = memo(({ data }) => {
           <div
             key={item.dataKey}
             onClick={() => {
-              console.log(`Toggling ${item.dataKey}`);
               handleLegendClick(item.dataKey);
             }}
             style={{

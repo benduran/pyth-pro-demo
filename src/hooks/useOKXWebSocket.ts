@@ -28,16 +28,13 @@ export const useOKXWebSocket = (
   // Fetch USDT/USD rate from Pyth
   const fetchUsdtToUsdRate = useCallback(async () => {
     try {
-      console.log("OKX: Fetching USDT/USD rate...");
       const response = await fetch(
         "https://hermes.pyth.network/v2/updates/price/latest?ids%5B%5D=2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
       );
       const data = await response.json();
       const price = Number(data.parsed[0].price.price) / Math.pow(10, 8);
       usdtToUsdRateRef.current = price;
-      console.log(`OKX: USDT/USD rate updated: ${price}`);
-    } catch (error) {
-      console.error("OKX: Error fetching USDT/USD rate:", error);
+    } catch (_error) {
       // Keep previous rate or default to 1
     }
   }, []);
@@ -67,7 +64,6 @@ export const useOKXWebSocket = (
       wsRef.current = new WebSocket("wss://ws.okx.com:8443/ws/v5/public");
 
       wsRef.current.addEventListener("open", () => {
-        console.log("OKX WebSocket connected");
         isConnectingRef.current = false;
         isConnectedRef.current = true;
         onStatusChange("connected");
@@ -90,7 +86,6 @@ export const useOKXWebSocket = (
           ],
         };
 
-        console.log("OKX: Sending subscription message:", subscribeMessage);
         wsRef.current?.send(JSON.stringify(subscribeMessage));
 
         if (reconnectTimeoutRef.current) {
@@ -102,7 +97,6 @@ export const useOKXWebSocket = (
       wsRef.current.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          // console.log('OKX: Received message:', data);
 
           // Handle best bid/offer updates
           if (
@@ -122,10 +116,6 @@ export const useOKXWebSocket = (
               // Convert USDT to USD using the fetched rate
               const midPriceUSD = midPriceUSDT * usdtToUsdRateRef.current;
 
-              console.log(
-                `OKX BBO - Bid: ${bestBid}, Ask: ${bestAsk}, Mid (USDT): ${midPriceUSDT}, Mid (USD): ${midPriceUSD}, USDT/USD Rate: ${usdtToUsdRateRef.current}`,
-              );
-
               onPriceUpdate({
                 price: midPriceUSD,
                 timestamp: Date.now(),
@@ -133,21 +123,12 @@ export const useOKXWebSocket = (
               });
             }
           }
-          // Handle subscription confirmations
-          else if (data.event === "subscribe") {
-            console.log("OKX: Subscription confirmed:", data);
-          }
-          // Handle errors
-          else if (data.event === "error") {
-            console.error("OKX: Subscription error:", data);
-          }
-        } catch (error) {
-          console.error("Error parsing OKX message:", error);
+        } catch (_error) {
+          // Ignore malformed WebSocket payloads
         }
       };
 
       wsRef.current.addEventListener("close", () => {
-        console.log("OKX WebSocket disconnected");
         isConnectingRef.current = false;
         isConnectedRef.current = false;
         onStatusChange("disconnected");
@@ -158,14 +139,12 @@ export const useOKXWebSocket = (
         // }, 5000);
       });
 
-      wsRef.current.onerror = (error) => {
-        console.error("OKX WebSocket error:", error);
+      wsRef.current.onerror = (_error) => {
         isConnectingRef.current = false;
         isConnectedRef.current = false;
         onStatusChange("disconnected");
       };
-    } catch (error) {
-      console.error("Error creating OKX WebSocket:", error);
+    } catch (_error) {
       isConnectingRef.current = false;
       isConnectedRef.current = false;
       onStatusChange("disconnected");

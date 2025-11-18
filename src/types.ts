@@ -6,12 +6,12 @@ export type PriceData = {
 
 export type PricePoint = {
   timestamp: number;
-  binance?: number;
-  coinbase?: number;
-  pyth?: number;
-  pythlazer?: number;
-  okx?: number;
-  bybit?: number;
+  binance?: Nullish<number>;
+  coinbase?: Nullish<number>;
+  pyth?: Nullish<number>;
+  pythlazer?: Nullish<number>;
+  okx?: Nullish<number>;
+  bybit?: Nullish<number>;
 };
 
 export type ExchangeStatus = {
@@ -55,3 +55,5 @@ export type CurrentPrices = {
     changePercent: number;
   } | null;
 };
+
+export type Nullish<T> = T | null | undefined;

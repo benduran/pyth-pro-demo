@@ -104,7 +104,7 @@ export const usePriceDataManager = () => {
   const handlePriceUpdate = useCallback(
     (data: PriceData) => {
       const { source, price, timestamp } = data;
-      const previousPrice = previousPricesRef.current[source] || price;
+      const previousPrice = previousPricesRef.current[source] ?? price;
       const change = price - previousPrice;
       const changePercent =
         previousPrice > 0 ? (change / previousPrice) * 100 : 0;

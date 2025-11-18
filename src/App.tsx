@@ -62,44 +62,44 @@ const App: React.FC = () => {
       <div className="price-cards">
         <PriceCard
           exchangeName="Binance"
-          price={currentPrices.binance?.price || null}
-          change={currentPrices.binance?.change || null}
-          changePercent={currentPrices.binance?.changePercent || null}
+          price={currentPrices.binance?.price}
+          change={currentPrices.binance?.change}
+          changePercent={currentPrices.binance?.changePercent}
           status={exchangeStatus.binance}
         />
         <PriceCard
           exchangeName="Coinbase"
-          price={currentPrices.coinbase?.price || null}
-          change={currentPrices.coinbase?.change || null}
-          changePercent={currentPrices.coinbase?.changePercent || null}
+          price={currentPrices.coinbase?.price}
+          change={currentPrices.coinbase?.change}
+          changePercent={currentPrices.coinbase?.changePercent}
           status={exchangeStatus.coinbase}
         />
         <PriceCard
           exchangeName="Pyth Core"
-          price={currentPrices.pyth?.price || null}
-          change={currentPrices.pyth?.change || null}
-          changePercent={currentPrices.pyth?.changePercent || null}
+          price={currentPrices.pyth?.price}
+          change={currentPrices.pyth?.change}
+          changePercent={currentPrices.pyth?.changePercent}
           status={exchangeStatus.pyth}
         />
         <PriceCard
           exchangeName="Pyth Pro"
-          price={currentPrices.pythlazer?.price || null}
-          change={currentPrices.pythlazer?.change || null}
-          changePercent={currentPrices.pythlazer?.changePercent || null}
+          price={currentPrices.pythlazer?.price}
+          change={currentPrices.pythlazer?.change}
+          changePercent={currentPrices.pythlazer?.changePercent}
           status={exchangeStatus.pythlazer}
         />
         <PriceCard
           exchangeName="OKX"
-          price={currentPrices.okx?.price || null}
-          change={currentPrices.okx?.change || null}
-          changePercent={currentPrices.okx?.changePercent || null}
+          price={currentPrices.okx?.price}
+          change={currentPrices.okx?.change}
+          changePercent={currentPrices.okx?.changePercent}
           status={exchangeStatus.okx}
         />
         <PriceCard
           exchangeName="Bybit"
-          price={currentPrices.bybit?.price || null}
-          change={currentPrices.bybit?.change || null}
-          changePercent={currentPrices.bybit?.changePercent || null}
+          price={currentPrices.bybit?.price}
+          change={currentPrices.bybit?.change}
+          changePercent={currentPrices.bybit?.changePercent}
           status={exchangeStatus.bybit}
         />
       </div>

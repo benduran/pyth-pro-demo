@@ -29,16 +29,13 @@ export const useBybitWebSocket = (
   // Fetch USDT/USD rate from Pyth
   const fetchUsdtToUsdRate = useCallback(async () => {
     try {
-      console.log("Bybit: Fetching USDT/USD rate...");
       const response = await fetch(
         "https://hermes.pyth.network/v2/updates/price/latest?ids%5B%5D=2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
       );
       const data = await response.json();
       const price = Number(data.parsed[0].price.price) / Math.pow(10, 8);
       usdtToUsdRateRef.current = price;
-      console.log(`Bybit: USDT/USD rate updated: ${price}`);
-    } catch (error) {
-      console.error("Bybit: Error fetching USDT/USD rate:", error);
+    } catch (_error) {
       // Keep previous rate or default to 1
     }
   }, []);
@@ -68,7 +65,6 @@ export const useBybitWebSocket = (
       wsRef.current = new WebSocket("wss://stream.bybit.com/v5/public/spot");
 
       wsRef.current.addEventListener("open", () => {
-        console.log("Bybit WebSocket connected");
         isConnectingRef.current = false;
         isConnectedRef.current = true;
         onStatusChange("connected");
@@ -86,7 +82,6 @@ export const useBybitWebSocket = (
           args: ["orderbook.1.BTCUSDT"],
         };
 
-        console.log("Bybit: Sending subscription message:", subscribeMessage);
         wsRef.current?.send(JSON.stringify(subscribeMessage));
 
         if (reconnectTimeoutRef.current) {
@@ -98,7 +93,6 @@ export const useBybitWebSocket = (
       wsRef.current.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          // console.log('Bybit: Received message:', data);
 
           // Handle orderbook updates
           if (
@@ -118,8 +112,6 @@ export const useBybitWebSocket = (
               // Convert USDT to USD using the fetched rate
               const midPriceUSD = midPriceUSDT * usdtToUsdRateRef.current;
 
-              // console.log(`Bybit Order Book - Bid: ${bestBid}, Ask: ${bestAsk}, Mid (USDT): ${midPriceUSDT}, Mid (USD): ${midPriceUSD}, USDT/USD Rate: ${usdtToUsdRateRef.current}`);
-
               onPriceUpdate({
                 price: midPriceUSD,
                 timestamp: Date.now(),
@@ -127,21 +119,12 @@ export const useBybitWebSocket = (
               });
             }
           }
-          // Handle subscription confirmations
-          else if (data.success === true) {
-            console.log("Bybit: Subscription confirmed:", data);
-          }
-          // Handle errors
-          else if (data.success === false) {
-            console.error("Bybit: Subscription error:", data);
-          }
-        } catch (error) {
-          console.error("Error parsing Bybit message:", error);
+        } catch (_error) {
+          // Ignore malformed WebSocket payloads
         }
       };
 
       wsRef.current.addEventListener("close", () => {
-        console.log("Bybit WebSocket disconnected");
         isConnectingRef.current = false;
         isConnectedRef.current = false;
         onStatusChange("disconnected");
@@ -152,14 +135,12 @@ export const useBybitWebSocket = (
         // }, 5000);
       });
 
-      wsRef.current.onerror = (error) => {
-        console.error("Bybit WebSocket error:", error);
+      wsRef.current.onerror = (_error) => {
         isConnectingRef.current = false;
         isConnectedRef.current = false;
         onStatusChange("disconnected");
       };
-    } catch (error) {
-      console.error("Error creating Bybit WebSocket:", error);
+    } catch (_error) {
       isConnectingRef.current = false;
       isConnectedRef.current = false;
       onStatusChange("disconnected");

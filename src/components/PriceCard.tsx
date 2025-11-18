@@ -1,18 +1,21 @@
 import React from "react";
 
+import type { Nullish } from "../types";
+
 type PriceCardProps = {
   exchangeName: string;
-  price: number | null;
-  change: number | null;
-  changePercent: number | null;
+  price: Nullish<number>;
+  change: Nullish<number>;
+  changePercent: Nullish<number>;
   status: "connected" | "disconnected" | "connecting";
 };
 
 const formatChange = (
-  change: number | null,
-  changePercent: number | null,
+  change: Nullish<number>,
+  changePercent: Nullish<number>,
 ): string => {
-  if (change === null || changePercent === null) return "N/A";
+  if (typeof change !== "number" || typeof changePercent !== "number")
+    return "N/A";
   const sign = change >= 0 ? "+" : "";
   return `${sign}${change.toFixed(2)} (${sign}${changePercent.toFixed(2)}%)`;
 };
@@ -31,8 +34,8 @@ const getStatusText = (status: string): string => {
   }
 };
 
-const formatPrice = (price: number | null): string => {
-  if (price === null) return "N/A";
+const formatPrice = (price: Nullish<number>): string => {
+  if (typeof price !== "number") return "N/A";
   return price.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
@@ -41,8 +44,8 @@ const formatPrice = (price: number | null): string => {
   });
 };
 
-const getChangeClass = (change: number | null): string => {
-  if (change === null) return "price-neutral";
+const getChangeClass = (change: Nullish<number>): string => {
+  if (typeof change !== "number") return "price-neutral";
   if (change > 0) return "price-positive";
   if (change < 0) return "price-negative";
   return "price-neutral";

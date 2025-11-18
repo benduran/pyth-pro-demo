@@ -3,6 +3,7 @@ import type { SocketteOptions } from "sockette";
 import Sockette from "sockette";
 
 export type UseWebSocketOpts = {
+  enabled?: boolean;
   onClose?: (
     socket: Sockette,
     ...args: Parameters<NonNullable<WebSocket["onclose"]>>
@@ -25,7 +26,10 @@ export type UseWebSocketOpts = {
   ) => void;
 };
 
-export function useWebSocket(url: string, opts: UseWebSocketOpts) {
+export function useWebSocket(
+  url: string,
+  { enabled = true, ...opts }: UseWebSocketOpts,
+) {
   /** state */
   const [status, setStatus] = useState<
     "closed" | "connecting" | "connected" | "reconnecting"
@@ -41,10 +45,7 @@ export function useWebSocket(url: string, opts: UseWebSocketOpts) {
 
   /** callbacks */
   const connectSocket = useCallback(() => {
-    console.info(
-      "%cthrashing",
-      "background-color: yellow; color: purple; font-size: 16px; padding: 2px;",
-    );
+    if (!enabled) return;
 
     const w = new Sockette(url, {
       onclose: (...args) => {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { useEffect, useRef, useCallback } from "react";
 
 import type { PriceData } from "../types";
@@ -24,16 +25,13 @@ export const useBinanceWebSocket = (
   // Fetch USDT/USD rate from Pyth
   const fetchUsdtToUsdRate = useCallback(async () => {
     try {
-      console.log("Binance: Fetching USDT/USD rate...");
       const response = await fetch(
         "https://hermes.pyth.network/v2/updates/price/latest?ids%5B%5D=2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
       );
       const data = await response.json();
       const price = Number(data.parsed[0].price.price) / Math.pow(10, 8);
       usdtToUsdRateRef.current = price;
-      console.log(`Binance: USDT/USD rate updated: ${price}`);
-    } catch (error) {
-      console.error("Binance: Error fetching USDT/USD rate:", error);
+    } catch {
       // Keep previous rate or default to 1
     }
   }, []);
@@ -64,15 +62,14 @@ export const useBinanceWebSocket = (
       );
 
       wsRef.current.addEventListener("open", () => {
-        console.log("Binance WebSocket connected");
         isConnectingRef.current = false;
         isConnectedRef.current = true;
         onStatusChange("connected");
 
         // Start fetching USDT/USD rate immediately and then every 10 seconds
-        fetchUsdtToUsdRate();
+        void fetchUsdtToUsdRate();
         usdtRateFetchIntervalRef.current = setInterval(
-          fetchUsdtToUsdRate,
+          () => void fetchUsdtToUsdRate(),
           10_000,
         );
 
@@ -84,7 +81,7 @@ export const useBinanceWebSocket = (
 
       wsRef.current.onmessage = (event) => {
         try {
-          const data: BinanceOrderBookData = JSON.parse(event.data);
+          const data = JSON.parse(event.data) as BinanceOrderBookData;
           if (data.s === "BTCUSDT") {
             // Calculate mid price from best bid and best ask
             const bestBid = Number.parseFloat(data.b);
@@ -94,21 +91,18 @@ export const useBinanceWebSocket = (
             // Convert USDT to USD using the fetched rate
             const midPriceUSD = midPriceUSDT * usdtToUsdRateRef.current;
 
-            // console.log(`Binance Order Book - Bid: ${bestBid}, Ask: ${bestAsk}, Mid (USDT): ${midPriceUSDT}, Mid (USD): ${midPriceUSD}, USDT/USD Rate: ${usdtToUsdRateRef.current}`);
-
             onPriceUpdate({
               price: midPriceUSD,
               timestamp: Date.now(),
               source: "binance",
             });
           }
-        } catch (error) {
-          console.error("Error parsing Binance message:", error);
+        } catch {
+          // Ignore malformed WebSocket payloads
         }
       };
 
       wsRef.current.addEventListener("close", () => {
-        console.log("Binance WebSocket disconnected");
         isConnectingRef.current = false;
         isConnectedRef.current = false;
         onStatusChange("disconnected");
@@ -119,18 +113,12 @@ export const useBinanceWebSocket = (
         // }, 5000);
       });
 
-      wsRef.current.onerror = (error) => {
-        console.error("Binance WebSocket error:", error);
-        console.error(
-          "Binance WebSocket readyState:",
-          wsRef.current?.readyState,
-        );
+      wsRef.current.onerror = (_error) => {
         isConnectingRef.current = false;
         isConnectedRef.current = false;
         onStatusChange("disconnected");
       };
-    } catch (error) {
-      console.error("Error creating Binance WebSocket:", error);
+    } catch {
       isConnectingRef.current = false;
       isConnectedRef.current = false;
       onStatusChange("disconnected");

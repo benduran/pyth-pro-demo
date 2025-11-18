@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import type { PriceData } from "../types";
+import type { UseWebSocketOpts } from "./useWebSocket";
 import { useWebSocket } from "./useWebSocket";
 
 type PythPriceUpdateMessage = {
@@ -32,62 +33,74 @@ export const usePythWebSocket = (
   onPriceUpdate: (data: PriceData) => void,
   onStatusChange: (status: "connected" | "disconnected" | "connecting") => void,
 ) => {
-  const { close, reconnect, status } = useWebSocket(WS_URL, {
-    onMessage: (_, e) => {
-      const data = JSON.parse(e.data) as Partial<
-        PythPriceUpdateMessage & { result: string }
-      >;
+  /** refs */
+  const onStatusChangeRef = useRef(onStatusChange);
 
-      // Handle subscription confirmation
-      if (data.result === "success") {
-        console.info("Pyth subscription confirmed");
-        return;
+  /** callbacks */
+  const onMessage = useCallback<UseWebSocketOpts["onMessage"]>((_, e) => {
+    const data = JSON.parse(e.data) as Partial<
+      PythPriceUpdateMessage & { result: string }
+    >;
+
+    // Handle subscription confirmation
+    if (data.result === "success") {
+      return;
+    }
+
+    // Handle price updates
+    if (data.type === "price_update" && data.price_feed) {
+      const priceUpdateData = data as PythPriceUpdateMessage;
+      const priceFeed = priceUpdateData.price_feed;
+
+      // Check if this is the BTC/USD feed
+      if (priceFeed.id === BTC_USD_PRICE_FEED_ID && priceFeed.price) {
+        // Convert price with exponent: price * 10^expo
+        const price =
+          Number.parseFloat(priceFeed.price.price) *
+          Math.pow(10, priceFeed.price.expo);
+
+        onPriceUpdate({
+          price: price,
+          timestamp: Date.now(),
+          source: "pyth",
+        });
       }
-
-      // Handle price updates
-      if (data.type === "price_update" && data.price_feed) {
-        const priceUpdateData = data as PythPriceUpdateMessage;
-        const priceFeed = priceUpdateData.price_feed;
-
-        // Check if this is the BTC/USD feed
-        if (priceFeed.id === BTC_USD_PRICE_FEED_ID && priceFeed.price) {
-          // Convert price with exponent: price * 10^expo
-          const price =
-            Number.parseFloat(priceFeed.price.price) *
-            Math.pow(10, priceFeed.price.expo);
-
-          //console.log('Pyth BTC price:', price);
-
-          onPriceUpdate({
-            price: price,
-            timestamp: Date.now(),
-            source: "pyth",
-          });
-        }
-      }
-    },
-    onOpen: (socket) => {
+    }
+  }, []);
+  const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(
+    (socket) => {
       const subscribeMessage = {
         type: "subscribe",
         ids: [BTC_USD_PRICE_FEED_ID],
       };
       socket.json(subscribeMessage);
     },
+    [],
+  );
+
+  const { close, reconnect, status } = useWebSocket(WS_URL, {
+    onMessage,
+    onOpen,
+  });
+
+  /** effects */
+  useEffect(() => {
+    onStatusChangeRef.current = onStatusChange;
   });
 
   useEffect(() => {
     switch (status) {
       case "closed": {
-        onStatusChange("disconnected");
+        onStatusChangeRef.current("disconnected");
         return;
       }
       case "connected": {
-        onStatusChange("connected");
+        onStatusChangeRef.current("connected");
         return;
       }
       case "connecting":
       case "reconnecting": {
-        onStatusChange("connecting");
+        onStatusChangeRef.current("connecting");
         return;
       }
       default: {
