@@ -2,6 +2,7 @@ import React from "react";
 
 import { PriceCard } from "./components/PriceCard";
 import { SourceSelector } from "./components/SourceSelector";
+import { PYTH_LAZER_AUTH_TOKEN } from "./constants";
 import { useAppStateContext } from "./context";
 import { useDataStream } from "./hooks/useDataStream";
 import { isAllowedCryptoSymbol } from "./types";
@@ -46,7 +47,7 @@ export function App() {
 
   const { status: pythLazerStatus } = useDataStream({
     dataSource: "pythlazer",
-    enabled: isCryptoSource,
+    enabled: isCryptoSource && Boolean(PYTH_LAZER_AUTH_TOKEN),
     symbol: isAllowedCryptoSymbol(selectedSource) ? selectedSource : null,
   });
 
@@ -97,49 +98,20 @@ export function App() {
               symbol={selectedSource}
               status={pythStatus}
             />
-            <PriceCard
-              dataSource="pythlazer"
-              symbol={selectedSource}
-              status={pythLazerStatus}
-            />
+            {PYTH_LAZER_AUTH_TOKEN && (
+              <PriceCard
+                dataSource="pythlazer"
+                symbol={selectedSource}
+                status={pythLazerStatus}
+              />
+            )}
+            {!PYTH_LAZER_AUTH_TOKEN && (
+              <div className="price-card">
+                Please provide your PYTH Pro / Lazer access token to continue
+              </div>
+            )}
           </>
         )}
-        {/* <PriceCard
-          exchangeName="Binance"
-          price={currentPrices.binance?.price}
-          change={currentPrices.binance?.change}
-          changePercent={currentPrices.binance?.changePercent}
-        />
-        <PriceCard
-          exchangeName="Coinbase"
-          price={currentPrices.coinbase?.price}
-          change={currentPrices.coinbase?.change}
-          changePercent={currentPrices.coinbase?.changePercent}
-        />
-        <PriceCard
-          exchangeName="Pyth Core"
-          price={currentPrices.pyth?.price}
-          change={currentPrices.pyth?.change}
-          changePercent={currentPrices.pyth?.changePercent}
-        />
-        <PriceCard
-          exchangeName="Pyth Pro"
-          price={currentPrices.pythlazer?.price}
-          change={currentPrices.pythlazer?.change}
-          changePercent={currentPrices.pythlazer?.changePercent}
-        />
-        <PriceCard
-          exchangeName="OKX"
-          price={currentPrices.okx?.price}
-          change={currentPrices.okx?.change}
-          changePercent={currentPrices.okx?.changePercent}
-        />
-        <PriceCard
-          exchangeName="Bybit"
-          price={currentPrices.bybit?.price}
-          change={currentPrices.bybit?.change}
-          changePercent={currentPrices.bybit?.changePercent}
-        /> */}
       </div>
 
       {/* <PriceChart data={chartData} /> */}

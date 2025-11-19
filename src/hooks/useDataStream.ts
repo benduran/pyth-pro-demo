@@ -13,10 +13,9 @@ import { isNullOrUndefined } from "../util";
 import { useBybitWebSocket } from "./useBybitWebSocket";
 import { useCoinbaseWebSocket } from "./useCoinbaseWebSocket";
 import { useOKXWebSocket } from "./useOKXWebSocket";
+import { usePythLazerWebSocket } from "./usePythLazerWebSocket";
 import { usePythWebSocket } from "./usePythWebSocket";
-
-const PYTH_LAZER_ENDPOINT = "wss://pyth-lazer.dourolabs.app/v1/stream";
-const PYTH_LAZER_AUTH_TOKEN = import.meta.env.VITE_PYTH_LAZER_AUTH_TOKEN;
+import { PYTH_LAZER_AUTH_TOKEN, PYTH_LAZER_ENDPOINT } from "../constants";
 
 function getUrlForSymbolAndDataSource(
   dataSource: DataSourcesCrypto,
@@ -77,6 +76,8 @@ export function useDataStream({
     useCoinbaseWebSocket();
   const { onMessage: okxOnMessage, onOpen: okxOnOpen } = useOKXWebSocket();
   const { onMessage: pythOnMessage, onOpen: pythOnOpen } = usePythWebSocket();
+  const { onMessage: pythLazerOnMessage, onOpen: pythLazerOnOpen } =
+    usePythLazerWebSocket();
 
   /** callbacks */
   const onMessage = useCallback<UseWebSocketOpts["onMessage"]>(
@@ -108,6 +109,10 @@ export function useDataStream({
               pythOnMessage(usdtToUsdRate, strData);
               break;
             }
+            case "pythlazer": {
+              pythLazerOnMessage(usdtToUsdRate, strData);
+              break;
+            }
           }
         }
       }
@@ -117,6 +122,7 @@ export function useDataStream({
       bybitOnMessage,
       okxOnMessage,
       pythOnMessage,
+      pythLazerOnMessage,
       symbol,
       usdtToUsdRate,
     ],
@@ -144,6 +150,10 @@ export function useDataStream({
               pythOnOpen(...args);
               break;
             }
+            case "pythlazer": {
+              pythLazerOnOpen(...args);
+              break;
+            }
             default: {
               break;
             }
@@ -151,7 +161,14 @@ export function useDataStream({
         }
       }
     },
-    [bybitOnOpen, coinbaseOnOpen, okxOnOpen, pythOnOpen, symbol],
+    [
+      bybitOnOpen,
+      coinbaseOnOpen,
+      okxOnOpen,
+      pythOnOpen,
+      pythLazerOnOpen,
+      symbol,
+    ],
   );
 
   /** websocket */

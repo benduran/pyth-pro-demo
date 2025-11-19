@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { useCallback } from "react";
 
-import type { PriceData } from "../types";
 import type { UseWebSocketOpts } from "./useWebSocket";
-import { useWebSocket } from "./useWebSocket";
+import { useAppStateContext } from "../context";
+import type { AllowedCryptoSymbolsType, Nullish } from "../types";
+import { isAllowedCryptoSymbol } from "../types";
+import { isNullOrUndefined } from "../util";
 
 type PythLazerStreamUpdate = {
   type: string;
@@ -17,69 +20,72 @@ type PythLazerStreamUpdate = {
 };
 
 // Pyth Lazer configuration
-const PYTH_LAZER_ENDPOINT = "wss://pyth-lazer.dourolabs.app/v1/stream";
-const PYTH_LAZER_AUTH_TOKEN = import.meta.env.VITE_PYTH_LAZER_AUTH_TOKEN;
+// these are grabbed from https://docs.pyth.network/price-feeds/pro/price-feed-ids
 const BTC_PRICE_FEED_ID = 1;
+const ETH_PRICE_FEED_ID = 2;
 
-export const usePythLazerWebSocket = (
-  onPriceUpdate: (data: PriceData) => void,
-) => {
+export function usePythLazerWebSocket() {
+  /** context */
+  const { addDataPoint, selectedSource } = useAppStateContext();
+
   /** callbacks */
   const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(
     (socket) => {
+      if (!selectedSource) return;
+      let feedId: number | null = null;
+      if (selectedSource === "BTCUSDT") feedId = BTC_PRICE_FEED_ID;
+      else if (selectedSource === "ETHUSDT") feedId = ETH_PRICE_FEED_ID;
+
+      if (isNullOrUndefined(feedId)) return;
+
       // Subscribe to BTC price feed
       const subscribeMessage = {
         subscriptionId: 1,
         type: "subscribe",
-        priceFeedIds: [BTC_PRICE_FEED_ID],
+        priceFeedIds: [feedId],
         properties: ["price"],
         chains: [],
         channel: "real_time",
       };
-      socket.send(subscribeMessage);
+      socket.json(subscribeMessage);
     },
-    [],
+    [selectedSource],
   );
-  const onMessage = useCallback<UseWebSocketOpts["onMessage"]>((_, e) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const data = JSON.parse(e.data) as Partial<
-      PythLazerStreamUpdate & { type: string }
-    >;
+  const onMessage = useCallback(
+    (_: number, strData: string) => {
+      const data = JSON.parse(strData) as Partial<
+        PythLazerStreamUpdate & { type: string }
+      >;
 
-    // Handle stream updates
-    if (data.type === "streamUpdated" && data.subscriptionId === 1) {
-      const updateData = data as PythLazerStreamUpdate;
+      // Handle stream updates
+      if (data.type === "streamUpdated" && data.subscriptionId === 1) {
+        const updateData = data as PythLazerStreamUpdate;
 
-      if (updateData.parsed?.priceFeeds?.length) {
-        const priceFeed = updateData.parsed.priceFeeds[0];
+        if (updateData.parsed?.priceFeeds?.length) {
+          const priceFeed = updateData.parsed.priceFeeds[0];
 
-        if (priceFeed?.priceFeedId === BTC_PRICE_FEED_ID) {
-          // Pyth Lazer price has 8 decimal places precision, convert to dollars
-          const priceRaw = Number.parseFloat(priceFeed.price);
-          const priceInDollars = priceRaw / 100_000_000; // Divide by 10^
+          let symbol: Nullish<AllowedCryptoSymbolsType> = null;
+          if (priceFeed?.priceFeedId === BTC_PRICE_FEED_ID) {
+            symbol = "BTCUSDT";
+          } else if (priceFeed?.priceFeedId === ETH_PRICE_FEED_ID) {
+            symbol = "ETHUSDT";
+          }
 
-          onPriceUpdate({
-            price: priceInDollars,
-            timestamp: Date.now(),
-            source: "pythlazer",
-          });
+          if (!isNullOrUndefined(priceFeed) && isAllowedCryptoSymbol(symbol)) {
+            // Pyth Lazer price has 8 decimal places precision, convert to dollars
+            const priceRaw = Number.parseFloat(priceFeed.price);
+            const priceInDollars = priceRaw / 100_000_000; // Divide by 10^
+
+            addDataPoint("pythlazer", symbol, {
+              price: priceInDollars,
+              timestamp: Date.now(),
+            });
+          }
         }
       }
-    }
-  }, []);
-
-  const { close, reconnect, status } = useWebSocket(
-    `${PYTH_LAZER_ENDPOINT}?ACCESS_TOKEN=${PYTH_LAZER_AUTH_TOKEN}`,
-    {
-      enabled: Boolean(PYTH_LAZER_AUTH_TOKEN),
-      onMessage,
-      onOpen,
     },
+    [addDataPoint, selectedSource],
   );
 
-  return {
-    isConnected: status === "connected",
-    reconnect,
-    disconnect: close,
-  };
-};
+  return { onMessage, onOpen };
+}

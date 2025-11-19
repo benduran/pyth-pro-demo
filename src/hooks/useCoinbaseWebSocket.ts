@@ -45,7 +45,7 @@ type CoinbaseLevel2Snapshot = {
 
 export function useCoinbaseWebSocket() {
   /** context */
-  const { addDataPoint } = useAppStateContext();
+  const { addDataPoint, selectedSource } = useAppStateContext();
 
   // Maintain local orderbook state for best bid/ask
   const orderbookRef = useRef<{
@@ -79,14 +79,20 @@ export function useCoinbaseWebSocket() {
   }, []);
   const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(
     (socket) => {
+      let productId = "";
+      if (selectedSource === "BTCUSDT") productId = "BTC-USD";
+      else if (selectedSource === "ETHUSDT") productId = "ETH-USD";
+
+      if (!productId) return;
+
       const subscribeMessage = {
         type: "subscribe",
-        product_ids: ["BTC-USD"],
+        product_ids: [productId],
         channel: "level2",
       };
       socket.json(subscribeMessage);
     },
-    [],
+    [selectedSource],
   );
   const onMessage = useCallback((_: number, strData: string) => {
     const data = JSON.parse(strData) as Partial<{
