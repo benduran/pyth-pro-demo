@@ -12,6 +12,7 @@ import { useWebSocket } from "./useWebSocket";
 import { isNullOrUndefined } from "../util";
 import { useBybitWebSocket } from "./useBybitWebSocket";
 import { useCoinbaseWebSocket } from "./useCoinbaseWebSocket";
+import { useOKXWebSocket } from "./useOKXWebSocket";
 
 const PYTH_LAZER_ENDPOINT = "wss://pyth-lazer.dourolabs.app/v1/stream";
 const PYTH_LAZER_AUTH_TOKEN = import.meta.env.VITE_PYTH_LAZER_AUTH_TOKEN;
@@ -73,6 +74,7 @@ export function useDataStream({
     useBybitWebSocket();
   const { onMessage: coinbaseOnMessage, onOpen: coinbaseOnOpen } =
     useCoinbaseWebSocket();
+  const { onMessage: okxOnMessage, onOpen: okxOnOpen } = useOKXWebSocket();
 
   /** callbacks */
   const onMessage = useCallback<UseWebSocketOpts["onMessage"]>(
@@ -96,11 +98,15 @@ export function useDataStream({
               coinbaseOnMessage(usdtToUsdRate, strData);
               break;
             }
+            case "okx": {
+              okxOnMessage(usdtToUsdRate, strData);
+              break;
+            }
           }
         }
       }
     },
-    [binanceOnMessage, bybitOnMessage, symbol, usdtToUsdRate],
+    [binanceOnMessage, bybitOnMessage, okxOnMessage, symbol, usdtToUsdRate],
   );
 
   const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(
@@ -117,6 +123,10 @@ export function useDataStream({
               coinbaseOnOpen(...args);
               break;
             }
+            case "okx": {
+              okxOnOpen(...args);
+              break;
+            }
             default: {
               break;
             }
@@ -124,7 +134,7 @@ export function useDataStream({
         }
       }
     },
-    [bybitOnOpen, symbol],
+    [bybitOnOpen, coinbaseOnOpen, okxOnOpen, symbol],
   );
 
   /** websocket */
