@@ -20,6 +20,36 @@ export function App() {
     symbol: isAllowedCryptoSymbol(selectedSource) ? selectedSource : null,
   });
 
+  const { status: bybitStatus } = useDataStream({
+    dataSource: "bybit",
+    enabled: isCryptoSource,
+    symbol: isAllowedCryptoSymbol(selectedSource) ? selectedSource : null,
+  });
+
+  const { status: coinbaseStatus } = useDataStream({
+    dataSource: "coinbase",
+    enabled: isCryptoSource,
+    symbol: isAllowedCryptoSymbol(selectedSource) ? selectedSource : null,
+  });
+
+  const { status: okxStatus } = useDataStream({
+    dataSource: "okx",
+    enabled: isCryptoSource,
+    symbol: isAllowedCryptoSymbol(selectedSource) ? selectedSource : null,
+  });
+
+  const { status: pythStatus } = useDataStream({
+    dataSource: "pyth",
+    enabled: isCryptoSource,
+    symbol: isAllowedCryptoSymbol(selectedSource) ? selectedSource : null,
+  });
+
+  const { status: pythLazerStatus } = useDataStream({
+    dataSource: "pythlazer",
+    enabled: isCryptoSource,
+    symbol: isAllowedCryptoSymbol(selectedSource) ? selectedSource : null,
+  });
+
   return (
     <div className="app-container">
       <div className="header">
@@ -46,6 +76,31 @@ export function App() {
               dataSource="binance"
               symbol={selectedSource}
               status={binanceStatus}
+            />
+            <PriceCard
+              dataSource="bybit"
+              symbol={selectedSource}
+              status={bybitStatus}
+            />
+            <PriceCard
+              dataSource="coinbase"
+              symbol={selectedSource}
+              status={coinbaseStatus}
+            />
+            <PriceCard
+              dataSource="okx"
+              symbol={selectedSource}
+              status={okxStatus}
+            />
+            <PriceCard
+              dataSource="pyth"
+              symbol={selectedSource}
+              status={pythStatus}
+            />
+            <PriceCard
+              dataSource="pythlazer"
+              symbol={selectedSource}
+              status={pythLazerStatus}
             />
           </>
         )}

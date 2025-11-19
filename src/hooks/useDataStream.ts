@@ -10,6 +10,7 @@ import { useFetchUsdtToUsdRate } from "./useFetchUsdtToUsdRate";
 import type { UseWebSocketOpts } from "./useWebSocket";
 import { useWebSocket } from "./useWebSocket";
 import { isNullOrUndefined } from "../util";
+import { useBybitWebSocket } from "./useBybitWebSocket";
 
 const PYTH_LAZER_ENDPOINT = "wss://pyth-lazer.dourolabs.app/v1/stream";
 const PYTH_LAZER_AUTH_TOKEN = import.meta.env.VITE_PYTH_LAZER_AUTH_TOKEN;
@@ -67,6 +68,8 @@ export function useDataStream({
 
   /** hooks */
   const { onMessage: binanceOnMessage } = useBinanceWebSocket();
+  const { onMessage: bybitOnMessage, onOpen: bybitOnOpen } =
+    useBybitWebSocket();
 
   /** callbacks */
   const onMessage = useCallback<UseWebSocketOpts["onMessage"]>(
@@ -82,25 +85,38 @@ export function useDataStream({
               }
               break;
             }
+            case "bybit": {
+              if (!isNullOrUndefined(usdtToUsdRate)) {
+                bybitOnMessage(usdtToUsdRate, strData);
+              }
+              break;
+            }
           }
         }
       }
     },
-    [binanceOnMessage, usdtToUsdRate],
+    [binanceOnMessage, bybitOnMessage, symbol, usdtToUsdRate],
   );
 
-  const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(() => {
-    switch (symbol) {
-      case "BTCUSDT":
-      case "ETHUSDT": {
-        switch (dataSource) {
-          default: {
-            break;
+  const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(
+    (...args) => {
+      switch (symbol) {
+        case "BTCUSDT":
+        case "ETHUSDT": {
+          switch (dataSource) {
+            case "bybit": {
+              bybitOnOpen(...args);
+              break;
+            }
+            default: {
+              break;
+            }
           }
         }
       }
-    }
-  }, []);
+    },
+    [bybitOnOpen, symbol],
+  );
 
   /** websocket */
   const url = getUrlForSymbolAndDataSource(dataSource, symbol);

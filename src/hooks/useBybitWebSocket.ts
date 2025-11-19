@@ -1,9 +1,8 @@
 import { useCallback } from "react";
 
-import type { PriceData } from "../types";
-import { useFetchUsdtToUsdRate } from "./useFetchUsdtToUsdRate";
+import type { AllowedCryptoSymbolsType } from "../types";
 import type { UseWebSocketOpts } from "./useWebSocket";
-import { useWebSocket } from "./useWebSocket";
+import { useAppStateContext } from "../context";
 import { isNullOrUndefined } from "../util";
 
 type BybitOrderBookData = {
@@ -19,7 +18,10 @@ type BybitOrderBookData = {
   };
 };
 
-export const useBybitWebSocket = (onPriceUpdate: (data: PriceData) => void) => {
+export function useBybitWebSocket() {
+  /** context */
+  const { addDataPoint } = useAppStateContext();
+
   /** callbacks */
   const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(
     (socket) => {
@@ -31,17 +33,24 @@ export const useBybitWebSocket = (onPriceUpdate: (data: PriceData) => void) => {
     },
     [],
   );
-  const onMessage = useCallback<UseWebSocketOpts["onMessage"]>((_, e) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const data = JSON.parse(e.data) as Partial<
-      BybitOrderBookData & { topic: string; type: string }
+  const onMessage = useCallback((usdtToUsdRate: number, socketData: string) => {
+    const data = JSON.parse(socketData) as Partial<
+      BybitOrderBookData & {
+        topic: `orderbook.1.${AllowedCryptoSymbolsType}`;
+        type: string;
+      }
     >;
 
     // Handle orderbook updates
     if (
-      (data.topic === "orderbook.1.BTCUSDT" && data.type === "snapshot") ||
+      ((data.topic === "orderbook.1.BTCUSDT" ||
+        data.topic === "orderbook.1.ETHUSDT") &&
+        data.type === "snapshot") ||
       data.type === "delta"
     ) {
+      const symbol = data.topic?.split(".").pop();
+      if (!symbol) return;
+
       const orderBookData = data as BybitOrderBookData;
       const bookData = orderBookData.data;
 
@@ -55,26 +64,14 @@ export const useBybitWebSocket = (onPriceUpdate: (data: PriceData) => void) => {
         if (!isNullOrUndefined(usdtToUsdRate)) {
           const midPriceUSD = midPriceUSDT * usdtToUsdRate;
 
-          onPriceUpdate({
+          addDataPoint("bybit", symbol as AllowedCryptoSymbolsType, {
             price: midPriceUSD,
             timestamp: Date.now(),
-            source: "bybit",
           });
         }
       }
     }
   }, []);
 
-  /** hooks */
-  const { usdtToUsdRate } = useFetchUsdtToUsdRate({ refetchInterval: 10_000 });
-  const { close, reconnect, status } = useWebSocket(
-    "wss://stream.bybit.com/v5/public/spot",
-    { onMessage, onOpen },
-  );
-
-  return {
-    isConnected: status === "connected",
-    reconnect,
-    disconnect: close,
-  };
-};
+  return { onMessage, onOpen };
+}
