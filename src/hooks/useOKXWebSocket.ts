@@ -3,7 +3,7 @@ import { useCallback } from "react";
 
 import type { UseWebSocketOpts } from "./useWebSocket";
 import { useAppStateContext } from "../context";
-import { isAllowedCryptoSymbol } from "../types";
+import { isAllowedCryptoSymbol } from "../util";
 
 type OKXBBOData = {
   arg: {

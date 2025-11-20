@@ -6,7 +6,7 @@ import { SourceSelector } from "./components/SourceSelector";
 import { PYTH_LAZER_AUTH_TOKEN } from "./constants";
 import { useAppStateContext } from "./context";
 import { useDataStream } from "./hooks/useDataStream";
-import { isAllowedCryptoSymbol } from "./types";
+import { isAllowedCryptoSymbol } from "./util";
 
 export function App() {
   /** context */

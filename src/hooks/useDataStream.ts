@@ -2,7 +2,7 @@ import { useCallback } from "react";
 
 import type {
   AllowedCryptoSymbolsType,
-  DataSourcesCrypto,
+  DataSourcesCryptoType,
   Nullish,
 } from "../types";
 import { useBinanceWebSocket } from "./useBinanceWebSocket";
@@ -18,7 +18,7 @@ import { usePythWebSocket } from "./usePythWebSocket";
 import { PYTH_LAZER_AUTH_TOKEN, PYTH_LAZER_ENDPOINT } from "../constants";
 
 function getUrlForSymbolAndDataSource(
-  dataSource: DataSourcesCrypto,
+  dataSource: DataSourcesCryptoType,
   symbol: Nullish<AllowedCryptoSymbolsType>,
 ) {
   if (!symbol) return null;
@@ -51,7 +51,7 @@ function getUrlForSymbolAndDataSource(
 }
 
 type UseDataStreamOpts = {
-  dataSource: DataSourcesCrypto;
+  dataSource: DataSourcesCryptoType;
   enabled?: boolean;
   symbol: Nullish<AllowedCryptoSymbolsType>;
 };

@@ -2,11 +2,12 @@ import type { PropsWithChildren } from "react";
 import { createContext, use, useCallback, useMemo, useState } from "react";
 
 import type {
+  AllAllowedSymbols,
   AllAndLatestDataState,
+  AllDataSourcesType,
   AllowedCryptoSymbolsType,
   CurrentPriceMetrics,
   CurrentPricesState,
-  DataSourcesCrypto,
   LatestMetric,
   Nullish,
   PriceData,
@@ -14,8 +15,8 @@ import type {
 
 export type AppStateContextVal = CurrentPricesState & {
   addDataPoint: (
-    dataSource: DataSourcesCrypto,
-    symbol: AllowedCryptoSymbolsType,
+    dataSource: AllDataSourcesType,
+    symbol: AllAllowedSymbols,
     dataPoint: PriceData,
   ) => void;
 
@@ -24,17 +25,19 @@ export type AppStateContextVal = CurrentPricesState & {
 
 const context = createContext<Nullish<AppStateContextVal>>(null);
 
+const initialState: CurrentPricesState = {
+  binance: { all: {}, latest: {} },
+  bybit: { all: {}, latest: {} },
+  coinbase: { all: {}, latest: {} },
+  okx: { all: {}, latest: {} },
+  pyth: { all: {}, latest: {} },
+  pythlazer: { all: {}, latest: {} },
+  selectedSource: null,
+};
+
 export function AppStateProvider({ children }: PropsWithChildren) {
   /** state */
-  const [appState, setAppState] = useState<CurrentPricesState>({
-    binance: { all: {}, latest: {} },
-    bybit: { all: {}, latest: {} },
-    coinbase: { all: {}, latest: {} },
-    okx: { all: {}, latest: {} },
-    pyth: { all: {}, latest: {} },
-    pythlazer: { all: {}, latest: {} },
-    selectedSource: null,
-  });
+  const [appState, setAppState] = useState<CurrentPricesState>(initialState);
 
   /** callbacks */
   const addDataPoint = useCallback<AppStateContextVal["addDataPoint"]>(
@@ -73,10 +76,12 @@ export function AppStateProvider({ children }: PropsWithChildren) {
   );
 
   const handleSelectSource = useCallback((source: AllowedCryptoSymbolsType) => {
-    setAppState((prev) => ({
-      ...prev,
+    setAppState({
+      // blast away all state, because we don't need the old
+      // data to be munged with the new data
+      ...initialState,
       selectedSource: source,
-    }));
+    });
   }, []);
 
   /** provider val */

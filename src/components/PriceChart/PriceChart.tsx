@@ -15,8 +15,12 @@ import classes from "./PriceChart.module.css";
 import { MAX_DATA_AGE, MAX_DATA_POINTS } from "../../constants";
 import { useAppStateContext } from "../../context";
 import type { Nullish } from "../../types";
-import { DATA_SOURCES_CRYPTO, isAllowedCryptoSymbol } from "../../types";
-import { getColorForDataSource, isNullOrUndefined } from "../../util";
+import { DATA_SOURCES_CRYPTO } from "../../types";
+import {
+  getColorForDataSource,
+  isAllowedCryptoSymbol,
+  isNullOrUndefined,
+} from "../../util";
 
 Chart.register(
   CategoryScale,

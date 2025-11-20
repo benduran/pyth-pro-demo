@@ -99,7 +99,7 @@ export function useWebSocket(
   const closeSocket = useCallback(() => {
     if (!wsRef.current) return;
 
-    console.info("closing", url);
+    if (url) console.info("closing", url);
     wsRef.current.close();
     setStatus("closed");
   }, [url]);

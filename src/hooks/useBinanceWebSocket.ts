@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { useAppStateContext } from "../context";
-import { isAllowedCryptoSymbol } from "../types";
+import { isAllowedCryptoSymbol } from "../util";
 
 type BinanceOrderBookData = {
   s: string; // symbol

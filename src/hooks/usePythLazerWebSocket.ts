@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { useCallback } from "react";
 
 import type { UseWebSocketOpts } from "./useWebSocket";
 import { useAppStateContext } from "../context";
 import type { AllowedCryptoSymbolsType, Nullish } from "../types";
-import { isAllowedCryptoSymbol } from "../types";
-import { isNullOrUndefined } from "../util";
+import { isAllowedCryptoSymbol, isNullOrUndefined } from "../util";
 
 type PythLazerStreamUpdate = {
   type: string;

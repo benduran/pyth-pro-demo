@@ -3,16 +3,12 @@ import React from "react";
 
 import { useAppStateContext } from "../context";
 import type { useWebSocket } from "../hooks/useWebSocket";
-import type {
-  AllowedCryptoSymbolsType,
-  DataSourcesCrypto,
-  Nullish,
-} from "../types";
-import { isNullOrUndefined } from "../util";
+import type { AllDataSourcesType, Nullish, AllAllowedSymbols } from "../types";
+import { getColorForDataSource, isNullOrUndefined } from "../util";
 
 type PriceCardProps = Pick<ReturnType<typeof useWebSocket>, "status"> & {
-  dataSource: DataSourcesCrypto;
-  symbol: AllowedCryptoSymbolsType;
+  dataSource: AllDataSourcesType;
+  symbol: AllAllowedSymbols;
 };
 
 const formatChange = (
@@ -50,7 +46,7 @@ export function PriceCard({ dataSource, symbol, status }: PriceCardProps) {
 
   return (
     <div className="price-card">
-      <h3>
+      <h3 style={{ color: getColorForDataSource(dataSource) }}>
         <span className="status-indicator"></span>
         {sentenceCase(dataSource)}: {symbol.toUpperCase()}
       </h3>

@@ -4,8 +4,7 @@ import { useRef, useCallback } from "react";
 import type { UseWebSocketOpts } from "./useWebSocket";
 import { useAppStateContext } from "../context";
 import type { AllowedCryptoSymbolsType } from "../types";
-import { isAllowedCryptoSymbol } from "../types";
-import { isNullOrUndefined } from "../util";
+import { isAllowedCryptoSymbol, isNullOrUndefined } from "../util";
 
 type CoinbaseAdvancedTradeLevel2Message = {
   channel: string;
