@@ -3,7 +3,7 @@ import type { ArrayValues } from "type-fest";
 export type Nullish<T> = T | null | undefined;
 
 export const ALLOWED_CRYPTO_SYMBOLS = ["BTCUSDT", "ETHUSDT"] as const;
-export const ALLOWED_EQUITY_SYMBOLS = ["TSLA"] as const;
+export const ALLOWED_EQUITY_SYMBOLS = ["TSLA", "NVDA"] as const;
 export const ALLOWED_FOREX_SYMBOLS = ["EURUSD"] as const;
 export const ALLOWED_TREASURY_SYMBOLS = ["US10Y"] as const;
 

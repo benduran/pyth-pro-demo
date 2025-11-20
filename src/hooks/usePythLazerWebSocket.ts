@@ -13,7 +13,7 @@ type PythLazerStreamUpdate = {
     priceFeeds?: {
       exponent: number;
       priceFeedId: number;
-      price: string;
+      price?: Nullish<string>;
     }[];
   };
 };
@@ -28,6 +28,7 @@ const SYMBOL_TO_PRICE_FEED_MAP = new Map<
   ["ETHUSDT", 2],
   ["EURUSD", 327],
   ["TSLA", 1435],
+  ["NVDA", 1314],
   ["US10Y", 1527],
 ]);
 
@@ -48,6 +49,7 @@ const SYMBOL_TO_CHANNEL_MAP = new Map<
   ["ETHUSDT", "real_time"],
   ["EURUSD", "fixed_rate@200ms"],
   ["TSLA", "real_time"],
+  ["NVDA", "real_time"],
   ["US10Y", "fixed_rate@200ms"],
 ]);
 
@@ -92,17 +94,14 @@ export function usePythLazerWebSocket() {
           const symbol = PRICE_FEED_TO_SYMBOL_MAP.get(priceFeed?.priceFeedId);
 
           if (!isNullOrUndefined(priceFeed) && isAllowedSymbol(symbol)) {
-            const { exponent } = priceFeed;
+            const { exponent, price } = priceFeed;
+            if (isNullOrUndefined(price)) return;
 
             // pyth_lazer price has 8 decimal places precision, convert to dollars
-            const priceRaw = Number.parseFloat(priceFeed.price);
-            // const priceInDollars = priceRaw / 100_000_000; // Divide by 10^
-
-            // Convert price with exponent: price * 10^expo
-            const price = priceRaw * Math.pow(10, exponent);
+            const priceRaw = Number.parseFloat(price);
 
             addDataPoint("pyth_lazer", symbol, {
-              price: price,
+              price: priceRaw * Math.pow(10, exponent),
               timestamp: Date.now(),
             });
           }

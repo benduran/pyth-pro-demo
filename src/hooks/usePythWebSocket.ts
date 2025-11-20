@@ -40,6 +40,7 @@ const SYMBOL_TO_PRICE_FEED_MAP = new Map<Nullish<AllAllowedSymbols>, string>([
     "a995d00bb36a63cef7fd2c287dc105fc8f3d93779f062f09551b0af3e81ec30b",
   ],
   ["TSLA", "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1"],
+  ["NVDA", "b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593"],
   ["US10Y", "9c196541230ba421baa2a499214564312a46bb47fb6b61ef63db2f70d3ce34c1"],
 ]);
 
