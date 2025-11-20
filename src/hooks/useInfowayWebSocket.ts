@@ -9,13 +9,13 @@ import type {
   Nullish,
   UseDataProviderSocketHookReturnType,
 } from "../types";
-import { isAllowedSymbol } from "../util";
+import { isAllowedEquitySymbol, isAllowedSymbol } from "../util";
 
 type TradeSubscribeReq = {
   code: 10_000;
   trace: string;
   data: {
-    codes: AllAllowedSymbols;
+    codes: string;
   };
 };
 
@@ -86,7 +86,11 @@ export function useInfowayWebSocket(): UseDataProviderSocketHookReturnType {
 
       s.json({
         code: 10_000,
-        data: { codes: selectedSource },
+        data: {
+          codes: isAllowedEquitySymbol(selectedSource)
+            ? `${selectedSource}.US`
+            : selectedSource,
+        },
         trace: uuid(),
       } satisfies TradeSubscribeReq);
     },

@@ -5,7 +5,7 @@ import { useBinanceWebSocket } from "./useBinanceWebSocket";
 import { useFetchUsdtToUsdRate } from "./useFetchUsdtToUsdRate";
 import type { UseWebSocketOpts } from "./useWebSocket";
 import { useWebSocket } from "./useWebSocket";
-import { isNullOrUndefined } from "../util";
+import { isAllowedForexSymbol, isNullOrUndefined } from "../util";
 import { useBybitWebSocket } from "./useBybitWebSocket";
 import { useCoinbaseWebSocket } from "./useCoinbaseWebSocket";
 import { useInfowayWebSocket } from "./useInfowayWebSocket";
@@ -27,7 +27,9 @@ function getUrlForSymbolAndDataSource(
 
   switch (dataSource) {
     case "infoway_io": {
-      return `wss://data.infoway.io/ws?business=common&apikey=${API_TOKEN_INFOWAY}`;
+      return `wss://data.infoway.io/ws?business=${
+        isAllowedForexSymbol(symbol) ? "common" : "stock"
+      }&apikey=${API_TOKEN_INFOWAY}`;
     }
     case "binance": {
       return `wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@bookTicker`;

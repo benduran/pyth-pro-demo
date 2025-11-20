@@ -15,6 +15,7 @@ import { DATA_SOURCES_CRYPTO } from "./types";
 import {
   getColorForDataSource,
   isAllowedCryptoSymbol,
+  isAllowedEquitySymbol,
   isAllowedForexSymbol,
   isAllowedSymbol,
 } from "./util";
@@ -26,6 +27,7 @@ export function App() {
   /** local variables */
   const isCryptoSource = isAllowedCryptoSymbol(selectedSource);
   const isForexSource = isAllowedForexSymbol(selectedSource);
+  const isEquitySource = isAllowedEquitySymbol(selectedSource);
 
   /** hooks */
   const { status: binanceStatus } = useDataStream({
@@ -73,7 +75,10 @@ export function App() {
 
   const { status: infowayStatus } = useDataStream({
     dataSource: "infoway_io",
-    enabled: isAllowedForexSymbol(selectedSource) && Boolean(API_TOKEN_INFOWAY),
+    enabled:
+      (isAllowedForexSymbol(selectedSource) ||
+        isAllowedEquitySymbol(selectedSource)) &&
+      Boolean(API_TOKEN_INFOWAY),
     symbol: selectedSource,
   });
 
@@ -105,9 +110,11 @@ export function App() {
             <PriceCard dataSource="okx" status={okxStatus} />
           </>
         )}
+        {(isForexSource || isEquitySource) && (
+          <PriceCard dataSource="infoway_io" status={infowayStatus} />
+        )}
         {isForexSource && (
           <>
-            <PriceCard dataSource="infoway_io" status={infowayStatus} />
             <PriceCard dataSource="prime_api" status={primeApiStatus} />
           </>
         )}
