@@ -2,16 +2,23 @@ import type {
   AllAllowedSymbols,
   AllowedCryptoSymbolsType,
   AllowedEquitySymbolsType,
+  AllowedForexSymbolsType,
+  AllowedTreasureySymbolsType,
   DataSourcesCryptoType,
   DataSourcesEquityType,
+  DataSourcesForexType,
+  DataSourcesTreasuryType,
   Nullish,
 } from "../types";
 import {
   ALLOWED_CRYPTO_SYMBOLS,
   ALLOWED_EQUITY_SYMBOLS,
   ALLOWED_FOREX_SYMBOLS,
+  ALLOWED_TREASURY_SYMBOLS,
   DATA_SOURCES_CRYPTO,
   DATA_SOURCES_EQUITY,
+  DATA_SOURCES_FOREX,
+  DATA_SOURCES_TREASURY,
 } from "../types";
 
 export function isAllowedSymbol(
@@ -21,6 +28,7 @@ export function isAllowedSymbol(
     ...ALLOWED_CRYPTO_SYMBOLS,
     ...ALLOWED_EQUITY_SYMBOLS,
     ...ALLOWED_FOREX_SYMBOLS,
+    ...ALLOWED_TREASURY_SYMBOLS,
   ]) {
     if (s === symbol) return true;
   }
@@ -60,6 +68,42 @@ export function isAllowedEquityDataSource(
   dataSource: Nullish<string>,
 ): dataSource is DataSourcesEquityType {
   for (const s of DATA_SOURCES_EQUITY) {
+    if (s === dataSource) return true;
+  }
+  return false;
+}
+
+export function isAllowedForexSymbol(
+  symbol: Nullish<string>,
+): symbol is AllowedForexSymbolsType {
+  for (const s of ALLOWED_FOREX_SYMBOLS) {
+    if (s === symbol) return true;
+  }
+  return false;
+}
+
+export function isAllowedForexDataSource(
+  dataSource: Nullish<string>,
+): dataSource is DataSourcesForexType {
+  for (const s of DATA_SOURCES_FOREX) {
+    if (s === dataSource) return true;
+  }
+  return false;
+}
+
+export function isAllowedTreasurySymbol(
+  symbol: Nullish<string>,
+): symbol is AllowedTreasureySymbolsType {
+  for (const s of ALLOWED_TREASURY_SYMBOLS) {
+    if (s === symbol) return true;
+  }
+  return false;
+}
+
+export function isAllowedTreasuryDataSource(
+  dataSource: Nullish<string>,
+): dataSource is DataSourcesTreasuryType {
+  for (const s of DATA_SOURCES_TREASURY) {
     if (s === dataSource) return true;
   }
   return false;

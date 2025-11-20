@@ -28,6 +28,7 @@ const SYMBOL_TO_PRICE_FEED_MAP = new Map<
   ["ETHUSDT", 2],
   ["EURUSD", 327],
   ["TSLA", 1435],
+  ["US10Y", 1527],
 ]);
 
 const PRICE_FEED_TO_SYMBOL_MAP = new Map(
@@ -47,6 +48,7 @@ const SYMBOL_TO_CHANNEL_MAP = new Map<
   ["ETHUSDT", "real_time"],
   ["EURUSD", "fixed_rate@200ms"],
   ["TSLA", "real_time"],
+  ["US10Y", "fixed_rate@200ms"],
 ]);
 
 export function usePythLazerWebSocket() {
