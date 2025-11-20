@@ -1,4 +1,5 @@
 import type {
+  AllAllowedSymbols,
   AllowedCryptoSymbolsType,
   AllowedEquitySymbolsType,
   DataSourcesCryptoType,
@@ -11,6 +12,16 @@ import {
   DATA_SOURCES_CRYPTO,
   DATA_SOURCES_EQUITY,
 } from "../types";
+
+export function isAllowedSymbol(
+  symbol: Nullish<string>,
+): symbol is AllAllowedSymbols {
+  for (const s of [...ALLOWED_CRYPTO_SYMBOLS, ...ALLOWED_EQUITY_SYMBOLS]) {
+    if (s === symbol) return true;
+  }
+
+  return false;
+}
 
 export function isAllowedCryptoSymbol(
   symbol: Nullish<string>,

@@ -6,7 +6,7 @@ const palette: Partial<Record<DataSourcesCryptoType, string>> = {
   coinbase: "green",
   okx: "orange",
   pyth: "purple",
-  pythlazer: "teal",
+  pyth_lazer: "teal",
 };
 
 /**

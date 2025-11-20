@@ -31,7 +31,7 @@ const initialState: CurrentPricesState = {
   coinbase: { all: {}, latest: {} },
   okx: { all: {}, latest: {} },
   pyth: { all: {}, latest: {} },
-  pythlazer: { all: {}, latest: {} },
+  pyth_lazer: { all: {}, latest: {} },
   selectedSource: null,
 };
 

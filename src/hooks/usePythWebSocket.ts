@@ -2,8 +2,8 @@ import { useCallback } from "react";
 
 import type { UseWebSocketOpts } from "./useWebSocket";
 import { useAppStateContext } from "../context";
-import type { AllowedCryptoSymbolsType } from "../types";
-import { isAllowedCryptoSymbol, isNullOrUndefined } from "../util";
+import type { AllAllowedSymbols, Nullish } from "../types";
+import { isAllowedSymbol, isNullOrUndefined } from "../util";
 
 type PythPriceUpdateMessage = {
   type: string;
@@ -24,11 +24,26 @@ type PythPriceUpdateMessage = {
   };
 };
 
-// BTC/USD price feed ID from Pyth Network (without 0x prefix for subscription)
-const BTC_USD_PRICE_FEED_ID =
-  "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43";
-const ETH_USD_PRICE_FEED_ID =
-  "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace";
+const SYMBOL_TO_PRICE_FEED_MAP = new Map<Nullish<AllAllowedSymbols>, string>([
+  [undefined, ""],
+  [null, ""],
+  [
+    "BTCUSDT",
+    "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+  ],
+  [
+    "ETHUSDT",
+    "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+  ],
+  ["TSLA", "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1"],
+]);
+
+const PRICE_FEED_TO_SYMBOL_MAP = new Map(
+  SYMBOL_TO_PRICE_FEED_MAP.entries().map(([symbol, feedId]) => [
+    feedId,
+    symbol,
+  ]),
+);
 
 export function usePythWebSocket() {
   /** context */
@@ -51,15 +66,10 @@ export function usePythWebSocket() {
         const priceUpdateData = data as PythPriceUpdateMessage;
         const priceFeed = priceUpdateData.price_feed;
 
-        let symbol: AllowedCryptoSymbolsType | null = null;
-        if (priceFeed.id === BTC_USD_PRICE_FEED_ID) symbol = "BTCUSDT";
-        else if (priceFeed.id === ETH_USD_PRICE_FEED_ID) symbol = "ETHUSDT";
+        const symbol = PRICE_FEED_TO_SYMBOL_MAP.get(priceFeed.id);
 
         // Check if this is the BTC/USD feed
-        if (
-          isAllowedCryptoSymbol(symbol) &&
-          !isNullOrUndefined(priceFeed.price)
-        ) {
+        if (isAllowedSymbol(symbol) && !isNullOrUndefined(priceFeed.price)) {
           // Convert price with exponent: price * 10^expo
           const price =
             Number.parseFloat(priceFeed.price.price) *
@@ -76,9 +86,7 @@ export function usePythWebSocket() {
   );
   const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(
     (socket) => {
-      let feedId = "";
-      if (selectedSource === "BTCUSDT") feedId = BTC_USD_PRICE_FEED_ID;
-      else if (selectedSource === "ETHUSDT") feedId = ETH_USD_PRICE_FEED_ID;
+      const feedId = SYMBOL_TO_PRICE_FEED_MAP.get(selectedSource);
 
       if (!feedId) return;
 

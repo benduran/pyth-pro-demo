@@ -17,10 +17,10 @@ export const DATA_SOURCES_CRYPTO = [
   "coinbase",
   "okx",
   "pyth",
-  "pythlazer",
+  "pyth_lazer",
 ] as const;
 
-export const DATA_SOURCES_EQUITY = ["pyth", "pythlazer"] as const;
+export const DATA_SOURCES_EQUITY = ["pyth", "pyth_lazer"] as const;
 
 export type AllowedCryptoSymbolsType = ArrayValues<
   typeof ALLOWED_CRYPTO_SYMBOLS

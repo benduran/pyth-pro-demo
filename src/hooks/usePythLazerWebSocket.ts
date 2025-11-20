@@ -17,7 +17,7 @@ type PythLazerStreamUpdate = {
   };
 };
 
-// Pyth Lazer configuration
+// pyth_lazer configuration
 // these are grabbed from https://docs.pyth.network/price-feeds/pro/price-feed-ids
 const BTC_PRICE_FEED_ID = 1;
 const ETH_PRICE_FEED_ID = 2;
@@ -70,11 +70,11 @@ export function usePythLazerWebSocket() {
           }
 
           if (!isNullOrUndefined(priceFeed) && isAllowedCryptoSymbol(symbol)) {
-            // Pyth Lazer price has 8 decimal places precision, convert to dollars
+            // pyth_lazer price has 8 decimal places precision, convert to dollars
             const priceRaw = Number.parseFloat(priceFeed.price);
             const priceInDollars = priceRaw / 100_000_000; // Divide by 10^
 
-            addDataPoint("pythlazer", symbol, {
+            addDataPoint("pyth_lazer", symbol, {
               price: priceInDollars,
               timestamp: Date.now(),
             });

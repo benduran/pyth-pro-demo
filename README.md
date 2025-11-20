@@ -30,7 +30,7 @@ A real-time Bitcoin (BTC) price monitoring application that fetches live price d
 
 - Node.js (version 16 or higher)
 - pnpm or yarn
-- Pyth Lazer auth token (required for Pyth Lazer WebSocket connection)
+- pyth_lazer auth token (required for pyth_lazer WebSocket connection)
 
 ### Installation
 
@@ -47,7 +47,7 @@ A real-time Bitcoin (BTC) price monitoring application that fetches live price d
    pnpm install
    ```
 
-4. Create a `.env` file in the project root and add your Pyth Lazer auth token:
+4. Create a `.env` file in the project root and add your pyth_lazer auth token:
 
    ```bash
    VITE_PYTH_LAZER_AUTH_TOKEN=your_auth_token_here

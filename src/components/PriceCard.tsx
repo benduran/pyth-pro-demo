@@ -1,4 +1,4 @@
-import { sentenceCase } from "change-case";
+import { capitalCase } from "change-case";
 import React from "react";
 
 import { useAppStateContext } from "../context";
@@ -48,7 +48,7 @@ export function PriceCard({ dataSource, symbol, status }: PriceCardProps) {
     <div className="price-card">
       <h3 style={{ color: getColorForDataSource(dataSource) }}>
         <span className="status-indicator"></span>
-        {sentenceCase(dataSource)}: {symbol.toUpperCase()}
+        {capitalCase(dataSource)}: {symbol.toUpperCase()}
       </h3>
       {metrics && (
         <>

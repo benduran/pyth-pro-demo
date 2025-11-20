@@ -1,3 +1,4 @@
+import { capitalCase } from "change-case";
 import React from "react";
 
 import { PriceCard } from "./components/PriceCard";
@@ -6,7 +7,8 @@ import { SourceSelector } from "./components/SourceSelector";
 import { PYTH_LAZER_AUTH_TOKEN } from "./constants";
 import { useAppStateContext } from "./context";
 import { useDataStream } from "./hooks/useDataStream";
-import { isAllowedCryptoSymbol } from "./util";
+import { DATA_SOURCES_CRYPTO } from "./types";
+import { getColorForDataSource, isAllowedCryptoSymbol } from "./util";
 
 export function App() {
   /** context */
@@ -47,7 +49,7 @@ export function App() {
   });
 
   const { status: pythLazerStatus } = useDataStream({
-    dataSource: "pythlazer",
+    dataSource: "pyth_lazer",
     enabled: isCryptoSource && Boolean(PYTH_LAZER_AUTH_TOKEN),
     symbol: isAllowedCryptoSymbol(selectedSource) ? selectedSource : null,
   });
@@ -101,7 +103,7 @@ export function App() {
             />
             {PYTH_LAZER_AUTH_TOKEN && (
               <PriceCard
-                dataSource="pythlazer"
+                dataSource="pyth_lazer"
                 symbol={selectedSource}
                 status={pythLazerStatus}
               />
@@ -128,23 +130,20 @@ export function App() {
         <p>
           Chart shows the last 60 seconds of price data • Updates in real-time
         </p>
-        <p>
-          Data sources:
-          <span style={{ color: "#1a1a1a", marginLeft: "0.5rem" }}>
-            Binance
-          </span>
-          <span style={{ color: "#0052ff", marginLeft: "0.5rem" }}>
-            Coinbase
-          </span>
-          <span style={{ color: "#9945ff", marginLeft: "0.5rem" }}>
-            Pyth Core
-          </span>
-          <span style={{ color: "#ff6b9d", marginLeft: "0.5rem" }}>
-            Pyth Pro
-          </span>
-          <span style={{ color: "#00d4aa", marginLeft: "0.5rem" }}>OKX</span>
-          <span style={{ color: "#f7931a", marginLeft: "0.5rem" }}>Bybit</span>
-        </p>
+        {selectedSource && (
+          <div className="data-sources-list">
+            Data sources:
+            {isAllowedCryptoSymbol(selectedSource) &&
+              DATA_SOURCES_CRYPTO.map((source) => (
+                <span
+                  key={source}
+                  style={{ color: getColorForDataSource(source) }}
+                >
+                  {capitalCase(source)}
+                </span>
+              ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -134,3 +134,11 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.data-sources-list {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}

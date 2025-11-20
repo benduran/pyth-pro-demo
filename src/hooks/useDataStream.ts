@@ -42,7 +42,7 @@ function getUrlForSymbolAndDataSource(
         case "pyth": {
           return `wss://hermes.pyth.network/ws?__cachebust=${symbol.toLowerCase()}`;
         }
-        case "pythlazer": {
+        case "pyth_lazer": {
           return `${PYTH_LAZER_ENDPOINT}?ACCESS_TOKEN=${PYTH_LAZER_AUTH_TOKEN}&__cachebust=${symbol.toLowerCase()}`;
         }
       }
@@ -109,7 +109,7 @@ export function useDataStream({
               pythOnMessage(usdtToUsdRate, strData);
               break;
             }
-            case "pythlazer": {
+            case "pyth_lazer": {
               pythLazerOnMessage(usdtToUsdRate, strData);
               break;
             }
@@ -150,7 +150,7 @@ export function useDataStream({
               pythOnOpen(...args);
               break;
             }
-            case "pythlazer": {
+            case "pyth_lazer": {
               pythLazerOnOpen(...args);
               break;
             }
