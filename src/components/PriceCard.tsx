@@ -11,6 +11,9 @@ type PriceCardProps = Pick<ReturnType<typeof useWebSocket>, "status"> & {
   symbol: Nullish<AllAllowedSymbols>;
 };
 
+const MAX_PRECISION = 6;
+const MIN_PRECISION = 2;
+
 const formatChange = (
   change: Nullish<number>,
   changePercent: Nullish<number>,
@@ -19,7 +22,9 @@ const formatChange = (
     return "N/A";
   }
   const sign = change >= 0 ? "+" : "";
-  return `${sign}${change.toFixed(2)} (${sign}${changePercent.toFixed(2)}%)`;
+  return `${sign}${change.toFixed(
+    MAX_PRECISION,
+  )} (${sign}${changePercent.toFixed(MAX_PRECISION)}%)`;
 };
 
 const formatPrice = (price: Nullish<number>): string => {
@@ -27,8 +32,8 @@ const formatPrice = (price: Nullish<number>): string => {
   return price.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: MIN_PRECISION,
+    maximumFractionDigits: MAX_PRECISION,
   });
 };
 
@@ -61,7 +66,9 @@ export function PriceCard({ dataSource, symbol, status }: PriceCardProps) {
           </div>
         </>
       )}
-      {!metrics && <div className="price-value">No data received</div>}
+      {!metrics && status === "connected" && (
+        <div className="price-value">No data received</div>
+      )}
       <div>{status}</div>
     </div>
   );

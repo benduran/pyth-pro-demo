@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import type { UseWebSocketOpts } from "./useWebSocket";
 import { useAppStateContext } from "../context";
 import type { AllAllowedSymbols, Nullish } from "../types";
-import { isAllowedCryptoSymbol, isNullOrUndefined } from "../util";
+import { isAllowedSymbol, isNullOrUndefined } from "../util";
 
 type PythLazerStreamUpdate = {
   type: string;
@@ -11,6 +11,7 @@ type PythLazerStreamUpdate = {
   parsed?: {
     timestampUs: string;
     priceFeeds?: {
+      exponent: number;
       priceFeedId: number;
       price: string;
     }[];
@@ -25,6 +26,7 @@ const SYMBOL_TO_PRICE_FEED_MAP = new Map<
   [null, null],
   ["BTCUSDT", 1],
   ["ETHUSDT", 2],
+  ["EURUSD", 327],
   ["TSLA", 1435],
 ]);
 
@@ -34,6 +36,18 @@ const PRICE_FEED_TO_SYMBOL_MAP = new Map(
     symbol,
   ]),
 );
+
+const SYMBOL_TO_CHANNEL_MAP = new Map<
+  Nullish<AllAllowedSymbols>,
+  Nullish<"real_time" | "fixed_rate@200ms">
+>([
+  [undefined, undefined],
+  [null, null],
+  ["BTCUSDT", "real_time"],
+  ["ETHUSDT", "real_time"],
+  ["EURUSD", "fixed_rate@200ms"],
+  ["TSLA", "real_time"],
+]);
 
 export function usePythLazerWebSocket() {
   /** context */
@@ -52,9 +66,9 @@ export function usePythLazerWebSocket() {
         subscriptionId: 1,
         type: "subscribe",
         priceFeedIds: [feedId],
-        properties: ["price"],
+        properties: ["exponent", "price"],
         chains: [],
-        channel: "real_time",
+        channel: SYMBOL_TO_CHANNEL_MAP.get(selectedSource),
       };
       socket.json(subscribeMessage);
     },
@@ -75,13 +89,18 @@ export function usePythLazerWebSocket() {
 
           const symbol = PRICE_FEED_TO_SYMBOL_MAP.get(priceFeed?.priceFeedId);
 
-          if (!isNullOrUndefined(priceFeed) && isAllowedCryptoSymbol(symbol)) {
+          if (!isNullOrUndefined(priceFeed) && isAllowedSymbol(symbol)) {
+            const { exponent } = priceFeed;
+
             // pyth_lazer price has 8 decimal places precision, convert to dollars
             const priceRaw = Number.parseFloat(priceFeed.price);
-            const priceInDollars = priceRaw / 100_000_000; // Divide by 10^
+            // const priceInDollars = priceRaw / 100_000_000; // Divide by 10^
+
+            // Convert price with exponent: price * 10^expo
+            const price = priceRaw * Math.pow(10, exponent);
 
             addDataPoint("pyth_lazer", symbol, {
-              price: priceInDollars,
+              price: price,
               timestamp: Date.now(),
             });
           }

@@ -9,6 +9,7 @@ import type {
 import {
   ALLOWED_CRYPTO_SYMBOLS,
   ALLOWED_EQUITY_SYMBOLS,
+  ALLOWED_FOREX_SYMBOLS,
   DATA_SOURCES_CRYPTO,
   DATA_SOURCES_EQUITY,
 } from "../types";
@@ -16,7 +17,11 @@ import {
 export function isAllowedSymbol(
   symbol: Nullish<string>,
 ): symbol is AllAllowedSymbols {
-  for (const s of [...ALLOWED_CRYPTO_SYMBOLS, ...ALLOWED_EQUITY_SYMBOLS]) {
+  for (const s of [
+    ...ALLOWED_CRYPTO_SYMBOLS,
+    ...ALLOWED_EQUITY_SYMBOLS,
+    ...ALLOWED_FOREX_SYMBOLS,
+  ]) {
     if (s === symbol) return true;
   }
 

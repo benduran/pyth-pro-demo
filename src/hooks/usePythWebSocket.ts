@@ -35,6 +35,10 @@ const SYMBOL_TO_PRICE_FEED_MAP = new Map<Nullish<AllAllowedSymbols>, string>([
     "ETHUSDT",
     "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
   ],
+  [
+    "EURUSD",
+    "a995d00bb36a63cef7fd2c287dc105fc8f3d93779f062f09551b0af3e81ec30b",
+  ],
   ["TSLA", "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1"],
 ]);
 
