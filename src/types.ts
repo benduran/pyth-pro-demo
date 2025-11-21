@@ -15,7 +15,11 @@ export type UseDataProviderSocketHookReturnType = {
   ) => void;
 };
 
-export const ALLOWED_CRYPTO_SYMBOLS = ["BTCUSDT", "ETHUSDT"] as const;
+export const ALLOWED_CRYPTO_SYMBOLS = [
+  "BTCUSDT",
+  "ETHUSDT",
+  "SOLUSDT",
+] as const;
 export const ALLOWED_EQUITY_SYMBOLS = ["AAPL", "NVDA", "TSLA"] as const;
 export const ALLOWED_FOREX_SYMBOLS = ["EURUSD"] as const;
 export const ALLOWED_TREASURY_SYMBOLS = ["US10Y"] as const;

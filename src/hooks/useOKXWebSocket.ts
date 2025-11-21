@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { useCallback } from "react";
 
 import { useAppStateContext } from "../context";
@@ -30,8 +29,23 @@ export function useOKXWebSocket(): UseDataProviderSocketHookReturnType {
 
       let instId = "";
 
-      if (selectedSource === "BTCUSDT") instId = "BTC-USDT";
-      else if (selectedSource === "ETHUSDT") instId = "ETH-USDT";
+      switch (selectedSource) {
+        case "BTCUSDT": {
+          instId = "BTC-USDT";
+          break;
+        }
+        case "ETHUSDT": {
+          instId = "ETH-USDT";
+          break;
+        }
+        case "SOLUSDT": {
+          {
+            instId = "SOL-USDT";
+            // No default
+          }
+          break;
+        }
+      }
 
       if (!instId) return;
 
@@ -58,11 +72,7 @@ export function useOKXWebSocket(): UseDataProviderSocketHookReturnType {
         const data = JSON.parse(strData) as Partial<OKXBBOData>;
 
         // Handle best bid/offer updates
-        if (
-          data.arg?.channel === "bbo-tbt" &&
-          (data.arg.instId === "BTC-USDT" || data.arg.instId === "ETH-USDT") &&
-          data.data?.length
-        ) {
+        if (data.arg?.channel === "bbo-tbt" && data.data?.length) {
           const bboData = data as OKXBBOData;
           const tickData = bboData.data[0];
 

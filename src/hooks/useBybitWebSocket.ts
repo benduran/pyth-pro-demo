@@ -49,12 +49,7 @@ export function useBybitWebSocket(): UseDataProviderSocketHookReturnType {
     >;
 
     // Handle orderbook updates
-    if (
-      ((data.topic === "orderbook.1.BTCUSDT" ||
-        data.topic === "orderbook.1.ETHUSDT") &&
-        data.type === "snapshot") ||
-      data.type === "delta"
-    ) {
+    if (data.type === "snapshot" || data.type === "delta") {
       const symbol = data.topic?.split(".").pop();
       if (!symbol) return;
 

@@ -137,6 +137,11 @@ export function PriceChart() {
       ds.data = (ds.data as ChartJSPoint[])
         .filter((d) => d.x >= start && d.x <= end)
         .slice(-MAX_DATA_POINTS);
+
+      // .sort() mutates the original array
+      c.data.datasets.sort(
+        (a, b) => a.label?.localeCompare(b.label ?? "") ?? 0,
+      );
     }
 
     c.update();

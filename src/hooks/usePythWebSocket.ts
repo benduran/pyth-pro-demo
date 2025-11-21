@@ -40,6 +40,10 @@ const SYMBOL_TO_PRICE_FEED_MAP = new Map<Nullish<AllAllowedSymbols>, string>([
     "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
   ],
   [
+    "SOLUSDT",
+    "ef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+  ],
+  [
     "EURUSD",
     "a995d00bb36a63cef7fd2c287dc105fc8f3d93779f062f09551b0af3e81ec30b",
   ],

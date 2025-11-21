@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { useRef, useCallback } from "react";
 
 import type { UseWebSocketOpts } from "./useWebSocket";
@@ -16,7 +15,7 @@ type CoinbaseAdvancedTradeLevel2Message = {
   sequence_num: number;
   events: {
     type: string;
-    product_id: "BTC-USD" | "ETH-USD";
+    product_id: "BTC-USD" | "ETH-USD" | "SOL-USD";
     updates?: {
       side: string; // "bid" or "offer"
       event_time: string;
@@ -82,8 +81,23 @@ export function useCoinbaseWebSocket(): UseDataProviderSocketHookReturnType {
   const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(
     (socket) => {
       let productId = "";
-      if (selectedSource === "BTCUSDT") productId = "BTC-USD";
-      else if (selectedSource === "ETHUSDT") productId = "ETH-USD";
+      switch (selectedSource) {
+        case "BTCUSDT": {
+          productId = "BTC-USD";
+          break;
+        }
+        case "ETHUSDT": {
+          productId = "ETH-USD";
+          break;
+        }
+        case "SOLUSDT": {
+          {
+            productId = "SOL-USD";
+            // No default
+          }
+          break;
+        }
+      }
 
       if (!productId) return;
 
@@ -108,8 +122,23 @@ export function useCoinbaseWebSocket(): UseDataProviderSocketHookReturnType {
     if (data.channel === "l2_data" && data.events) {
       for (const event of data.events) {
         let symbol: AllowedCryptoSymbolsType | null = null;
-        if (event.product_id === "BTC-USD") symbol = "BTCUSDT";
-        else if (event.product_id === "ETH-USD") symbol = "ETHUSDT";
+        switch (event.product_id) {
+          case "BTC-USD": {
+            symbol = "BTCUSDT";
+            break;
+          }
+          case "ETH-USD": {
+            symbol = "ETHUSDT";
+            break;
+          }
+          case "SOL-USD": {
+            {
+              symbol = "SOLUSDT";
+              // No default
+            }
+            break;
+          }
+        }
 
         if (isAllowedCryptoSymbol(symbol)) {
           // Handle snapshot (initial orderbook state)
