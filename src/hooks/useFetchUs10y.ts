@@ -49,7 +49,10 @@ export function useFetchUs10y(opts?: UseFetchUs10yOpts) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           setResponse(res);
           // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          addDataPoint("yahoo", selectedSource, res);
+          addDataPoint("yahoo", selectedSource, {
+            ...res,
+            timestamp: Date.now(),
+          });
         })
         .catch(setError);
 
