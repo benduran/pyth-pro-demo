@@ -20,9 +20,10 @@ export const ALLOWED_CRYPTO_SYMBOLS = [
   "ETHUSDT",
   "SOLUSDT",
 ] as const;
-export const ALLOWED_EQUITY_SYMBOLS = ["AAPL", "NVDA", "TSLA"] as const;
+export const ALLOWED_EQUITY_SYMBOLS = ["AAPL", "NVDA", "TSLA", "SPY"] as const;
 export const ALLOWED_FOREX_SYMBOLS = ["EURUSD"] as const;
-export const ALLOWED_TREASURY_SYMBOLS = ["US10Y"] as const;
+export const ALLOWED_TREASURY_SYMBOLS = [] as const;
+// export const ALLOWED_TREASURY_SYMBOLS = ["US10Y"] as const;
 
 export const DATA_SOURCES_CRYPTO = [
   "binance",
@@ -75,8 +76,7 @@ export type AllowedTreasureySymbolsType = ArrayValues<
 export type AllAllowedSymbols =
   | AllowedCryptoSymbolsType
   | AllowedEquitySymbolsType
-  | AllowedForexSymbolsType
-  | AllowedTreasureySymbolsType;
+  | AllowedForexSymbolsType;
 
 export type DataSourcesCryptoType = ArrayValues<typeof DATA_SOURCES_CRYPTO>;
 

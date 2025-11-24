@@ -166,6 +166,7 @@ export function App() {
         {dataSourcesInUse.map((dataSource) => (
           <PriceCard
             dataSource={dataSource}
+            key={dataSource}
             status={dataSourceStatuses[dataSource]}
           />
         ))}

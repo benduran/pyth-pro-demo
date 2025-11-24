@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useAppStateContext } from "../context";
-import type { Nullish } from "../types";
+import type { Nullish, PriceData } from "../types";
 import { isAllowedTreasurySymbol } from "../util";
+import { usePrevious } from "./usePrevious";
 
 type UseFetchUs10yOpts = {
   /**
@@ -21,11 +22,11 @@ export function useFetchUs10y(opts?: UseFetchUs10yOpts) {
 
   /** state */
   const [error, setError] = useState<Nullish<Error>>(null);
-  const [response, setResponse] =
-    useState<Nullish<{ price: number; timestamp: number }>>(null);
+  const [response, setResponse] = useState<Nullish<PriceData>>(null);
 
   /** refs */
   const abortControllerRef = useRef<Nullish<AbortController>>(null);
+  const prevMetric = usePrevious(response);
 
   /** effects */
   useEffect(() => {
@@ -46,13 +47,17 @@ export function useFetchUs10y(opts?: UseFetchUs10yOpts) {
             setError(new Error(String(res.error)));
             return;
           }
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          setResponse(res);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          addDataPoint("yahoo", selectedSource, {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          const dataPoint: PriceData = {
             ...res,
             timestamp: Date.now(),
-          });
+          };
+
+          if (dataPoint.timestamp !== prevMetric?.timestamp) {
+            setResponse(dataPoint);
+
+            addDataPoint("yahoo", selectedSource, dataPoint);
+          }
         })
         .catch(setError);
 

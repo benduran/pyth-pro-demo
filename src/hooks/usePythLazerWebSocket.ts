@@ -34,7 +34,8 @@ const SYMBOL_TO_PRICE_FEED_MAP = new Map<
   ["AAPL", 922],
   ["TSLA", 1435],
   ["NVDA", 1314],
-  ["US10Y", 1527],
+  ["SPY", 1398],
+  // ["US10Y", 1527],
 ]);
 
 const PRICE_FEED_TO_SYMBOL_MAP = new Map(
@@ -57,7 +58,8 @@ const SYMBOL_TO_CHANNEL_MAP = new Map<
   ["AAPL", "real_time"],
   ["TSLA", "real_time"],
   ["NVDA", "real_time"],
-  ["US10Y", "fixed_rate@200ms"],
+  ["SPY", "real_time"],
+  // ["US10Y", "fixed_rate@200ms"],
 ]);
 
 export function usePythLazerWebSocket(): UseDataProviderSocketHookReturnType {
