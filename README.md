@@ -1,6 +1,6 @@
-# BTC Price Monitor 🚀
+# Miscellaneous Asset Real-time demo 🚀
 
-A real-time Bitcoin (BTC) price monitoring application that fetches live price data from multiple exchanges and displays it in an interactive chart.
+A real-time price monitoring application that fetches live price data from multiple exchanges and displays it in an interactive chart.
 
 ## Features
 
