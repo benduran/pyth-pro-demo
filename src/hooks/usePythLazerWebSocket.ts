@@ -1,177 +1,132 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { PriceData } from '../types';
+import { useCallback } from "react";
 
-interface PythLazerStreamUpdate {
-    type: string;
-    subscriptionId: number;
-    parsed: {
-        timestampUs: string;
-        priceFeeds: Array<{
-            priceFeedId: number;
-            price: string;
-        }>;
-    };
-}
+import { useAppStateContext } from "../context";
+import type {
+  AllAllowedSymbols,
+  Nullish,
+  UseDataProviderSocketHookReturnType,
+} from "../types";
+import { isAllowedSymbol, isNullOrUndefined } from "../util";
 
-// Pyth Lazer configuration
-const PYTH_LAZER_ENDPOINT = 'wss://pyth-lazer.dourolabs.app/v1/stream';
-const PYTH_LAZER_AUTH_TOKEN = import.meta.env.VITE_PYTH_LAZER_AUTH_TOKEN;
-const BTC_PRICE_FEED_ID = 1;
-
-export const usePythLazerWebSocket = (
-    onPriceUpdate: (data: PriceData) => void,
-    onStatusChange: (status: 'connected' | 'disconnected' | 'connecting') => void
-) => {
-    const wsRef = useRef<WebSocket | null>(null);
-    const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const isConnectedRef = useRef(false);
-    const isConnectingRef = useRef(false);
-
-    const connect = useCallback(() => {
-        // Prevent multiple simultaneous connections
-        if (isConnectingRef.current || isConnectedRef.current ||
-            wsRef.current?.readyState === WebSocket.OPEN ||
-            wsRef.current?.readyState === WebSocket.CONNECTING) {
-            return;
-        }
-
-        // Close any existing connection first
-        if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
-        }
-
-        isConnectingRef.current = true;
-        onStatusChange('connecting');
-
-        try {
-            // Create WebSocket connection with auth token
-            const wsUrl = `${PYTH_LAZER_ENDPOINT}?ACCESS_TOKEN=${PYTH_LAZER_AUTH_TOKEN}`;
-            wsRef.current = new WebSocket(wsUrl);
-
-            wsRef.current.onopen = () => {
-                console.log('Pyth Lazer WebSocket connected');
-                isConnectingRef.current = false;
-                isConnectedRef.current = true;
-                onStatusChange('connected');
-
-                // Subscribe to BTC price feed
-                const subscribeMessage = {
-                    subscriptionId: 1,
-                    type: 'subscribe',
-                    priceFeedIds: [BTC_PRICE_FEED_ID],
-                    properties: ['price'],
-                    chains: [],
-                    channel: 'real_time'
-                };
-
-                console.log('Pyth Lazer: Sending subscription message:', subscribeMessage);
-                wsRef.current?.send(JSON.stringify(subscribeMessage));
-
-                if (reconnectTimeoutRef.current) {
-                    clearTimeout(reconnectTimeoutRef.current);
-                    reconnectTimeoutRef.current = null;
-                }
-            };
-
-            wsRef.current.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    // console.log('Pyth Lazer: Received message:', data.type, data);
-
-                    // Handle stream updates
-                    if (data.type === 'streamUpdated' && data.subscriptionId === 1) {
-                        const updateData = data as PythLazerStreamUpdate;
-
-                        if (updateData.parsed?.priceFeeds?.length > 0) {
-                            const priceFeed = updateData.parsed.priceFeeds[0];
-
-                            if (priceFeed.priceFeedId === BTC_PRICE_FEED_ID) {
-                                // Pyth Lazer price has 8 decimal places precision, convert to dollars
-                                const priceRaw = parseFloat(priceFeed.price);
-                                const priceInDollars = priceRaw / 100000000; // Divide by 10^
-
-                                //console.log(`Pyth Lazer BTC price: ${priceInDollars} (raw: ${priceFeed.price})`);
-
-                                onPriceUpdate({
-                                    price: priceInDollars,
-                                    timestamp: Date.now(),
-                                    source: 'pythlazer'
-                                });
-                            }
-                        }
-                    }
-                    // Handle subscription confirmations or other messages
-                    else if (data.type === 'subscribed') {
-                        console.log('Pyth Lazer: Subscription confirmed:', data);
-                    }
-                    else if (data.type === 'error') {
-                        console.error('Pyth Lazer: Error:', data);
-                    }
-                } catch (error) {
-                    console.error('Error parsing Pyth Lazer message:', error);
-                }
-            };
-
-            wsRef.current.onclose = () => {
-                console.log('Pyth Lazer WebSocket disconnected');
-                isConnectingRef.current = false;
-                isConnectedRef.current = false;
-                onStatusChange('disconnected');
-
-                // Disable automatic reconnection for now to prevent loops
-                // reconnectTimeoutRef.current = setTimeout(() => {
-                //   connect();
-                // }, 5000);
-            };
-
-            wsRef.current.onerror = (error) => {
-                console.error('Pyth Lazer WebSocket error:', error);
-                isConnectingRef.current = false;
-                isConnectedRef.current = false;
-                onStatusChange('disconnected');
-            };
-
-        } catch (error) {
-            console.error('Error creating Pyth Lazer WebSocket:', error);
-            isConnectingRef.current = false;
-            isConnectedRef.current = false;
-            onStatusChange('disconnected');
-
-            // Disable automatic retry for now to prevent loops
-            // reconnectTimeoutRef.current = setTimeout(() => {
-            //     connect();
-            // }, 5000);
-        }
-    }, [onPriceUpdate, onStatusChange]);
-
-    const disconnect = useCallback(() => {
-        if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current);
-            reconnectTimeoutRef.current = null;
-        }
-
-        if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
-        }
-
-        isConnectingRef.current = false;
-        isConnectedRef.current = false;
-        onStatusChange('disconnected');
-    }, [onStatusChange]);
-
-    useEffect(() => {
-        connect();
-
-        return () => {
-            disconnect();
-        };
-    }, []);
-
-    return {
-        isConnected: isConnectedRef.current,
-        reconnect: connect,
-        disconnect
-    };
+type PythLazerStreamUpdate = {
+  type: string;
+  subscriptionId: number;
+  parsed?: {
+    timestampUs: string;
+    priceFeeds?: {
+      exponent: number;
+      priceFeedId: number;
+      price?: Nullish<string>;
+    }[];
+  };
 };
+
+const SYMBOL_TO_PRICE_FEED_MAP = new Map<
+  Nullish<AllAllowedSymbols>,
+  Nullish<number>
+>([
+  [undefined, undefined],
+  [null, null],
+  ["BTCUSDT", 1],
+  ["ETHUSDT", 2],
+  ["SOLUSDT", 6],
+  ["EURUSD", 327],
+  ["AAPL", 922],
+  ["TSLA", 1435],
+  ["NVDA", 1314],
+  ["SPY", 1398],
+  ["ESZ2025", 2284],
+  // ["ESH2026", 2282],
+  // ["US10Y", 1527],
+]);
+
+const PRICE_FEED_TO_SYMBOL_MAP = new Map(
+  SYMBOL_TO_PRICE_FEED_MAP.entries().map(([symbol, feedId]) => [
+    feedId,
+    symbol,
+  ]),
+);
+
+const SYMBOL_TO_CHANNEL_MAP = new Map<
+  Nullish<AllAllowedSymbols>,
+  Nullish<"real_time" | "fixed_rate@200ms">
+>([
+  [undefined, undefined],
+  [null, null],
+  ["BTCUSDT", "real_time"],
+  ["ETHUSDT", "real_time"],
+  ["SOLUSDT", "real_time"],
+  ["EURUSD", "fixed_rate@200ms"],
+  ["AAPL", "real_time"],
+  ["TSLA", "real_time"],
+  ["NVDA", "real_time"],
+  ["SPY", "fixed_rate@200ms"],
+  ["ESZ2025", "real_time"],
+  // ["ESH2026", "real_time"],
+  // ["US10Y", "fixed_rate@200ms"],
+]);
+
+export function usePythLazerWebSocket(): UseDataProviderSocketHookReturnType {
+  /** context */
+  const { addDataPoint, selectedSource } = useAppStateContext();
+
+  /** callbacks */
+  const onOpen = useCallback<
+    NonNullable<UseDataProviderSocketHookReturnType["onOpen"]>
+  >(
+    (socket) => {
+      if (!selectedSource) return;
+      const feedId = SYMBOL_TO_PRICE_FEED_MAP.get(selectedSource);
+
+      if (isNullOrUndefined(feedId)) return;
+
+      // Subscribe to BTC price feed
+      const subscribeMessage = {
+        subscriptionId: 1,
+        type: "subscribe",
+        priceFeedIds: [feedId],
+        properties: ["exponent", "price"],
+        chains: [],
+        channel: SYMBOL_TO_CHANNEL_MAP.get(selectedSource),
+      };
+      socket.json(subscribeMessage);
+    },
+    [selectedSource],
+  );
+  const onMessage = useCallback<
+    UseDataProviderSocketHookReturnType["onMessage"]
+  >(
+    (_, __, strData) => {
+      const data = JSON.parse(strData) as Partial<
+        PythLazerStreamUpdate & { type: string }
+      >;
+
+      // Handle stream updates
+      if (data.type === "streamUpdated" && data.subscriptionId === 1) {
+        const updateData = data as PythLazerStreamUpdate;
+
+        if (updateData.parsed?.priceFeeds?.length) {
+          const priceFeed = updateData.parsed.priceFeeds[0];
+
+          const symbol = PRICE_FEED_TO_SYMBOL_MAP.get(priceFeed?.priceFeedId);
+
+          if (!isNullOrUndefined(priceFeed) && isAllowedSymbol(symbol)) {
+            const { exponent, price } = priceFeed;
+            if (isNullOrUndefined(price)) return;
+
+            // pyth_lazer price has 8 decimal places precision, convert to dollars
+            const priceRaw = Number.parseFloat(price);
+
+            addDataPoint("pyth_pro", symbol, {
+              price: priceRaw * Math.pow(10, exponent),
+              timestamp: Date.now(),
+            });
+          }
+        }
+      }
+    },
+    [addDataPoint, selectedSource],
+  );
+
+  return { onMessage, onOpen };
+}

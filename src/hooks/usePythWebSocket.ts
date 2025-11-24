@@ -1,171 +1,129 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { PriceData } from '../types';
+import { useCallback } from "react";
 
-interface PythPriceUpdateMessage {
-    type: string;
-    price_feed: {
-        id: string;
-        price: {
-            price: string;
-            conf: string;
-            expo: number;
-            publish_time: number;
-        };
-        ema_price: {
-            price: string;
-            conf: string;
-            expo: number;
-            publish_time: number;
-        };
+import type { UseWebSocketOpts } from "./useWebSocket";
+import { useAppStateContext } from "../context";
+import type {
+  AllAllowedSymbols,
+  Nullish,
+  UseDataProviderSocketHookReturnType,
+} from "../types";
+import { isAllowedSymbol, isNullOrUndefined } from "../util";
+
+type PythPriceUpdateMessage = {
+  type: string;
+  price_feed: {
+    id: string;
+    price?: {
+      price: string;
+      conf: string;
+      expo: number;
+      publish_time: number;
     };
-}
-
-// BTC/USD price feed ID from Pyth Network (without 0x prefix for subscription)
-const BTC_USD_PRICE_FEED_ID = 'e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43';
-
-export const usePythWebSocket = (
-    onPriceUpdate: (data: PriceData) => void,
-    onStatusChange: (status: 'connected' | 'disconnected' | 'connecting') => void
-) => {
-    const wsRef = useRef<WebSocket | null>(null);
-    const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const isConnectedRef = useRef(false);
-    const isConnectingRef = useRef(false);
-
-    const connect = useCallback(() => {
-        // Prevent multiple simultaneous connections
-        if (isConnectingRef.current || isConnectedRef.current ||
-            wsRef.current?.readyState === WebSocket.OPEN ||
-            wsRef.current?.readyState === WebSocket.CONNECTING) {
-            return;
-        }
-
-        // Close any existing connection first
-        if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
-        }
-
-        isConnectingRef.current = true;
-        onStatusChange('connecting');
-
-        try {
-            // Using Pyth's WebSocket endpoint for price streaming
-            wsRef.current = new WebSocket('wss://hermes.pyth.network/ws');
-
-            wsRef.current.onopen = () => {
-                console.log('Pyth WebSocket connected');
-                isConnectingRef.current = false;
-
-                // Subscribe to BTC/USD price feed
-                const subscribeMessage = {
-                    type: 'subscribe',
-                    ids: [BTC_USD_PRICE_FEED_ID]
-                };
-
-                wsRef.current?.send(JSON.stringify(subscribeMessage));
-                isConnectedRef.current = true;
-                onStatusChange('connected');
-
-                if (reconnectTimeoutRef.current) {
-                    clearTimeout(reconnectTimeoutRef.current);
-                    reconnectTimeoutRef.current = null;
-                }
-            };
-
-            wsRef.current.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-
-                    // Handle subscription confirmation
-                    if (data.result === 'success') {
-                        console.log('Pyth subscription confirmed');
-                        return;
-                    }
-
-                    // Handle price updates
-                    if (data.type === 'price_update' && data.price_feed) {
-                        const priceUpdateData = data as PythPriceUpdateMessage;
-                        const priceFeed = priceUpdateData.price_feed;
-
-                        // Check if this is the BTC/USD feed
-                        if (priceFeed.id === BTC_USD_PRICE_FEED_ID && priceFeed.price) {
-                            // Convert price with exponent: price * 10^expo
-                            const price = parseFloat(priceFeed.price.price) * Math.pow(10, priceFeed.price.expo);
-
-                            //console.log('Pyth BTC price:', price);
-
-                            onPriceUpdate({
-                                price: price,
-                                timestamp: Date.now(),
-                                source: 'pyth'
-                            });
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error parsing Pyth message:', error);
-                }
-            };
-
-            wsRef.current.onclose = () => {
-                console.log('Pyth WebSocket disconnected');
-                isConnectingRef.current = false;
-                isConnectedRef.current = false;
-                onStatusChange('disconnected');
-
-                // Disable automatic reconnection for now to prevent loops
-                // reconnectTimeoutRef.current = setTimeout(() => {
-                //   connect();
-                // }, 5000);
-            };
-
-            wsRef.current.onerror = (error) => {
-                console.error('Pyth WebSocket error:', error);
-                isConnectingRef.current = false;
-                isConnectedRef.current = false;
-                onStatusChange('disconnected');
-            };
-
-        } catch (error) {
-            console.error('Error creating Pyth WebSocket:', error);
-            isConnectingRef.current = false;
-            isConnectedRef.current = false;
-            onStatusChange('disconnected');
-
-            // Disable automatic retry for now to prevent loops
-            // reconnectTimeoutRef.current = setTimeout(() => {
-            //   connect();
-            // }, 5000);
-        }
-    }, [onPriceUpdate, onStatusChange]);
-
-    const disconnect = useCallback(() => {
-        if (reconnectTimeoutRef.current) {
-            clearTimeout(reconnectTimeoutRef.current);
-            reconnectTimeoutRef.current = null;
-        }
-
-        if (wsRef.current) {
-            wsRef.current.close();
-            wsRef.current = null;
-        }
-
-        isConnectingRef.current = false;
-        isConnectedRef.current = false;
-        onStatusChange('disconnected');
-    }, [onStatusChange]);
-
-    useEffect(() => {
-        connect();
-
-        return () => {
-            disconnect();
-        };
-    }, []);
-
-    return {
-        isConnected: isConnectedRef.current,
-        reconnect: connect,
-        disconnect
+    ema_price: {
+      price: string;
+      conf: string;
+      expo: number;
+      publish_time: number;
     };
+  };
 };
+
+const SYMBOL_TO_PRICE_FEED_MAP = new Map<Nullish<AllAllowedSymbols>, string>([
+  [undefined, ""],
+  [null, ""],
+  [
+    "BTCUSDT",
+    "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+  ],
+  [
+    "ETHUSDT",
+    "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+  ],
+  [
+    "SOLUSDT",
+    "ef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+  ],
+  [
+    "EURUSD",
+    "a995d00bb36a63cef7fd2c287dc105fc8f3d93779f062f09551b0af3e81ec30b",
+  ],
+  ["AAPL", "49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688"],
+  ["TSLA", "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1"],
+  ["NVDA", "b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593"],
+  ["SPY", "19e09bb805456ada3979a7d1cbb4b6d63babc3a0f8e8a9509f68afa5c4c11cd5"],
+  [
+    "ESZ2025",
+    "2f007d2339327f9be181b61354ca0ec579d8c4ed37d575bb66921109ebffc2c9",
+  ],
+  // [
+  //   "ESH2026",
+  //   "2f007d2339327f9be181b61354ca0ec579d8c4ed37d575bb66921109ebffc2c9",
+  // ],
+  // ["US10Y", "9c196541230ba421baa2a499214564312a46bb47fb6b61ef63db2f70d3ce34c1"],
+]);
+
+const PRICE_FEED_TO_SYMBOL_MAP = new Map(
+  SYMBOL_TO_PRICE_FEED_MAP.entries().map(([symbol, feedId]) => [
+    feedId,
+    symbol,
+  ]),
+);
+
+export function usePythWebSocket(): UseDataProviderSocketHookReturnType {
+  /** context */
+  const { addDataPoint, selectedSource } = useAppStateContext();
+
+  /** callbacks */
+  const onMessage = useCallback<
+    UseDataProviderSocketHookReturnType["onMessage"]
+  >(
+    (_, __, strData) => {
+      const data = JSON.parse(strData) as Partial<
+        PythPriceUpdateMessage & { result: string }
+      >;
+
+      // Handle subscription confirmation
+      if (data.result === "success") {
+        return;
+      }
+
+      // Handle price updates
+      if (data.type === "price_update" && data.price_feed) {
+        const priceUpdateData = data as PythPriceUpdateMessage;
+        const priceFeed = priceUpdateData.price_feed;
+
+        const symbol = PRICE_FEED_TO_SYMBOL_MAP.get(priceFeed.id);
+
+        // Check if this is the BTC/USD feed
+        if (isAllowedSymbol(symbol) && !isNullOrUndefined(priceFeed.price)) {
+          // Convert price with exponent: price * 10^expo
+          const price =
+            Number.parseFloat(priceFeed.price.price) *
+            Math.pow(10, priceFeed.price.expo);
+
+          addDataPoint("pyth", symbol, {
+            price: price,
+            timestamp: Date.now(),
+          });
+        }
+      }
+    },
+    [addDataPoint, selectedSource],
+  );
+  const onOpen = useCallback<NonNullable<UseWebSocketOpts["onOpen"]>>(
+    (socket) => {
+      const feedId = SYMBOL_TO_PRICE_FEED_MAP.get(selectedSource);
+
+      if (!feedId) return;
+
+      const subscribeMessage = {
+        type: "subscribe",
+        ids: [feedId],
+      };
+      socket.json(subscribeMessage);
+    },
+    [selectedSource],
+  );
+
+  return { onMessage, onOpen };
+}

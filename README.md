@@ -4,10 +4,28 @@ A real-time Bitcoin (BTC) price monitoring application that fetches live price d
 
 ## Features
 
-- **Real-time Price Feeds**: Connects to three major data sources:
-  - **Binance** (BTC/USDT)
-  - **Coinbase** (BTC-USD) 
-  - **Pyth Network** (BTC/USD)
+- **Real-time Price Feeds**: Connects to the following data sources:
+
+  - **Crypto (BTC/USDT or ETH/USDT)**
+    - Binance
+    - Coinbase
+    - Pyth Network
+    - Pyth Pro
+    - OKX
+    - Bybit
+  - **Equities (AAPL, NVDA or TSLA)**
+    - [infoway.io](https://infoway.io/)
+    - [twelvedata](http://twelvedata.com/) (NOTE: Trial API key only supports `AAPL`)
+    - Pyth Network
+    - Pyth Pro
+  - **Forex (EURUSD)**
+    - [infoway.io](https://infoway.io/)
+    - [PrimeAPI](https://primeapi.io/)
+    - Pyth Network
+    - Pyth Pro
+  - **Treasuries (US10Y)**
+    - Pyth Network
+    - Pyth Pro
 
 - **Live Chart**: Interactive line chart showing the last 60 seconds of price data
 - **Price Cards**: Display current prices with change indicators for each exchange
@@ -17,9 +35,9 @@ A real-time Bitcoin (BTC) price monitoring application that fetches live price d
 
 ## Technologies Used
 
-- **React 18** with TypeScript
+- **React 19** with TypeScript
 - **Vite** for fast development and building
-- **Recharts** for data visualization
+- **chart.js** for high-performance, canvas-based data visualization
 - **WebSocket APIs** for real-time data streaming
 - **Modern CSS** with responsive design
 
@@ -27,74 +45,59 @@ A real-time Bitcoin (BTC) price monitoring application that fetches live price d
 
 ### Prerequisites
 
-- Node.js (version 16 or higher)
-- npm or yarn
-- Pyth Lazer auth token (required for Pyth Lazer WebSocket connection)
+- bun (version 1.3.2 as defined in `.tool-versions`)
+- API tokens for external providers (see [API Tokens](#api-tokens))
 
 ### Installation
 
 1. Clone or download this project
 2. Navigate to the project directory:
+
    ```bash
    cd btc-demo
    ```
 
 3. Install dependencies:
+
    ```bash
-   npm install
+   bun install
    ```
 
-4. Create a `.env` file in the project root and add your Pyth Lazer auth token:
-   ```bash
-   VITE_PYTH_LAZER_AUTH_TOKEN=your_auth_token_here
-   ```
+4. Create a `.env` file in the project root and set the required tokens ([see below](#api-tokens)).
 
 5. Start the development server:
+
    ```bash
-   npm run dev
+   bun run dev
    ```
 
 6. Open your browser and navigate to `http://localhost:3000`
 
+### Local Development with mise
+
+1. Install [mise](https://mise.jdx.dev) if you do not already have it available.
+2. From the project root, run `mise install` to install the tool versions specified in `.tool-versions`.
+3. Start a shell with `mise shell` (or `mise env -s bash`/`zsh`) so the managed toolchain is on your `PATH`.
+4. Inside that shell, run the usual project commands such as `bun install`, `bun run dev`, or `bun run build`.
+
+### API Tokens
+
+Several external providers require API tokens. Add the following entries to your `.env` file (or configure them in your environment) before running the app:
+
+```bash
+VITE_API_TOKEN_PYTH_LAZER=your_pyth_lazer_token
+VITE_API_TOKEN_PRIME_API=your_prime_api_token
+VITE_API_TOKEN_INFOWAY=your_infoway_token
+VITE_API_TOKEN_TWELVE_DATA=your_twelve_data_token
+```
+
+Tokens that are not needed for your setup can be left unset, but the corresponding feeds will remain inactive.
+
 ### Build for Production
 
 ```bash
-npm run build
+bun build
 ```
-
-## How It Works
-
-### Data Sources
-
-1. **Binance WebSocket**: Connects to `wss://stream.binance.com:9443/ws/btcusdt@ticker`
-2. **Coinbase WebSocket**: Connects to `wss://ws-feed.exchange.coinbase.com`
-3. **Pyth Network**: Connects to `wss://hermes.pyth.network/ws` for decentralized price feeds
-4. **Pyth Pro**: Connects to `wss://pyth-lazer.dourolabs.app/v1/stream` for real-time price feeds
-5. **OKX**: Connects to `wss://ws.okx.com:8443/ws/v5/public` for real-time price feeds
-6. **Bybit**: Connects to `wss://stream.bybit.com/v5/public` for real-time price feeds
-
-### Performance Optimizations
-
-- **Data Aggregation**: High-frequency price updates are aggregated into 1-second intervals
-- **Memory Management**: Chart data is limited to 60 data points (1 minute window)
-- **Efficient Rendering**: Chart animations are disabled for smooth real-time updates
-- **Memoization**: React components use memoization to prevent unnecessary re-renders
-
-### Chart Features
-
-- Shows prices from all three exchanges in different colors
-- 1-minute sliding window of data
-- Real-time updates without animation lag
-- Responsive design for different screen sizes
-- Custom tooltips with formatted price information
-
-## WebSocket Connection Details
-
-The application handles WebSocket connections with:
-- Automatic reconnection on disconnect
-- Connection status indicators
-- Error handling and recovery
-- Clean disconnection on component unmount
 
 ## Troubleshooting
 

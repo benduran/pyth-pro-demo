@@ -1,0 +1,37 @@
+.priceCard {
+  margin-bottom: 0.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.priceCardPrice {
+  color: var(--bluegray-700);
+  font-size: 1.2rem;
+}
+
+.priceCardSubtitle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  & > span {
+    &:last-child {
+      font-size: 0.8rem;
+      font-style: italic;
+    }
+  }
+}
+
+.priceDropping {
+  color: var(--red-500);
+}
+
+.priceIncreasing {
+  color: var(--green-500);
+}
+
+.root {
+  padding: 0.5rem;
+}

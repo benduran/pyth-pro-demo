@@ -1,0 +1,22 @@
+.title {
+  display: flex;
+  flex-flow: column;
+  gap: 0.25rem;
+
+  & > span {
+    &:first-child {
+      font-weight: bold;
+    }
+  }
+}
+
+.root {
+  background-color: var(--surface-100);
+  border: none;
+  border-radius: 0;
+  flex-shrink: 0;
+  left: 0;
+  padding: 1rem;
+  position: sticky;
+  top: 0;
+}
