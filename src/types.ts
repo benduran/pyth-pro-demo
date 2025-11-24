@@ -15,7 +15,9 @@ export type UseDataProviderSocketHookReturnType = {
   ) => void;
 };
 
-export const ALLOWED_FUTURE_SYMBOLS = ["ESZ2025", "ESH2026"] as const;
+// uncomment this if the 2026 feed gets brought online
+// export const ALLOWED_FUTURE_SYMBOLS = ["ESZ2025", "ESH2026"] as const;
+export const ALLOWED_FUTURE_SYMBOLS = ["ESZ2025"] as const;
 
 export const ALLOWED_CRYPTO_SYMBOLS = [
   "BTCUSDT",

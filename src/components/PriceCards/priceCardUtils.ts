@@ -10,7 +10,7 @@ export const PriceCardUtils = {
     changePercent: Nullish<number>,
   ): string {
     if (isNullOrUndefined(change) || isNullOrUndefined(changePercent)) {
-      return "N/A";
+      return "-";
     }
     const sign = change >= 0 ? "+" : "";
     return `${sign}${change.toFixed(
@@ -19,7 +19,7 @@ export const PriceCardUtils = {
   },
 
   formatPrice(price: Nullish<number>): string {
-    if (isNullOrUndefined(price)) return "N/A";
+    if (isNullOrUndefined(price)) return "No data";
     return price.toLocaleString("en-US", {
       style: "currency",
       currency: "USD",

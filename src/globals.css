@@ -2,6 +2,10 @@
   box-sizing: border-box;
 }
 
+:root {
+  --price-card-width: 250px;
+}
+
 body, html {
   font-size: 14px;
   margin: 0;

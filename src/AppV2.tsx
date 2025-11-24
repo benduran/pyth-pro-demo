@@ -2,9 +2,12 @@ import classes from "./AppV2.module.css";
 import { Header } from "./components/Header";
 import { PriceCards } from "./components/PriceCards";
 import { PriceChart } from "./components/PriceChart";
-// import { PriceChart } from "./components/PriceChart";
+import { useAppStateContext } from "./context";
 
 export function AppV2() {
+  /** context */
+  const { dataSourcesInUse } = useAppStateContext();
+
   return (
     <div className={classes.root}>
       <Header />
@@ -13,7 +16,7 @@ export function AppV2() {
           <PriceCards />
         </aside>
         <article>
-          <PriceChart />
+          <PriceChart key={dataSourcesInUse.join(", ")} />
         </article>
       </main>
     </div>

@@ -1,5 +1,5 @@
 import "./globals.css";
-import "primereact/resources/themes/soho-light/theme.css";
+import "primereact/resources/themes/lara-light-purple/theme.css";
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { PrimeReactProvider } from "primereact/api";

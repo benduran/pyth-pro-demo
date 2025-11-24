@@ -36,7 +36,7 @@ const SYMBOL_TO_PRICE_FEED_MAP = new Map<
   ["NVDA", 1314],
   ["SPY", 1398],
   ["ESZ2025", 2284],
-  ["ESH2026", 2282],
+  // ["ESH2026", 2282],
   // ["US10Y", 1527],
 ]);
 
@@ -62,7 +62,7 @@ const SYMBOL_TO_CHANNEL_MAP = new Map<
   ["NVDA", "real_time"],
   ["SPY", "real_time"],
   ["ESZ2025", "real_time"],
-  ["ESH2026", "real_time"],
+  // ["ESH2026", "real_time"],
   // ["US10Y", "fixed_rate@200ms"],
 ]);
 
