@@ -142,35 +142,49 @@ export const ALL_SYMBOLS = [
   ]),
 ];
 
-const SOURCE_SELECTOR_OPTS = [
+export const NO_SELECTION_VAL = "No selection" as const;
+
+export const SOURCE_SELECTOR_OPTS = [
+  {
+    label: NO_SELECTION_VAL,
+    value: NO_SELECTION_VAL,
+    type: "None",
+  },
   ...ALLOWED_CRYPTO_SYMBOLS.map((symbol) => ({
-    group: "crypto",
     label: symbol,
     value: symbol,
+    type: "crypto",
   })),
   ...ALLOWED_EQUITY_SYMBOLS.map((symbol) => ({
-    group: "equities",
     label: symbol,
     value: symbol,
+    type: "equities",
   })),
   ...ALLOWED_FOREX_SYMBOLS.map((symbol) => ({
-    group: "Forex",
     label: symbol,
     value: symbol,
+    type: "Forex",
   })),
   ...ALLOWED_TREASURY_SYMBOLS.map((symbol) => ({
-    group: "treasuries",
     label: symbol,
     value: symbol,
+    type: "treasuries",
   })),
   ...ALLOWED_FUTURE_SYMBOLS.map((symbol) => ({
-    group: "futures",
     label: symbol,
     value: symbol,
+    type: "futures",
   })),
 ];
 
-export const GROUPED_SOURCE_SELECTOR_OPTS = Object.groupBy(
-  SOURCE_SELECTOR_OPTS,
-  (opt) => opt.group,
-);
+export type SourceSelectorOptType = (typeof SOURCE_SELECTOR_OPTS)[0];
+
+export const GROUPED_SOURCE_SELECTOR_OPTS = Object.entries(
+  Object.groupBy(SOURCE_SELECTOR_OPTS, (opt) => opt.type),
+).map(([groupName, opts]) => ({
+  label: groupName,
+  items: opts,
+}));
+
+export type GroupedSourceSelectorOptType =
+  (typeof GROUPED_SOURCE_SELECTOR_OPTS)[0];

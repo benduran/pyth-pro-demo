@@ -15,6 +15,7 @@ export function ThemeSwitcher() {
       onClick={() => {
         handleChangeTheme(theme === "dark" ? "light" : "dark");
       }}
+      outlined={theme === "dark"}
       tooltip={tooltip}
       tooltipOptions={{ position: "left" }}
     />

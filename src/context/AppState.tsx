@@ -5,7 +5,6 @@ import type {
   AllAllowedSymbols,
   AllAndLatestDataState,
   AllDataSourcesType,
-  AllowedCryptoSymbolsType,
   CurrentPricesState,
   LatestMetric,
   Nullish,
@@ -20,7 +19,7 @@ export type AppStateContextVal = CurrentPricesState & {
     dataPoint: PriceData,
   ) => void;
 
-  handleSelectSource: (source: AllowedCryptoSymbolsType) => void;
+  handleSelectSource: (source: AllAllowedSymbols) => void;
 };
 
 const context = createContext<Nullish<AppStateContextVal>>(null);
@@ -75,7 +74,7 @@ export function AppStateProvider({ children }: PropsWithChildren) {
     [],
   );
 
-  const handleSelectSource = useCallback((source: AllowedCryptoSymbolsType) => {
+  const handleSelectSource = useCallback((source: AllAllowedSymbols) => {
     setAppState({
       // blast away all state, because we don't need the old
       // data to be munged with the new data
