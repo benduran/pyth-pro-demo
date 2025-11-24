@@ -60,7 +60,7 @@ const SYMBOL_TO_CHANNEL_MAP = new Map<
   ["AAPL", "real_time"],
   ["TSLA", "real_time"],
   ["NVDA", "real_time"],
-  ["SPY", "real_time"],
+  ["SPY", "fixed_rate@200ms"],
   ["ESZ2025", "real_time"],
   // ["ESH2026", "real_time"],
   // ["US10Y", "fixed_rate@200ms"],
